@@ -14,19 +14,21 @@ export function useLogos() {
     }
   }, []);
 
-  const saveLogos = (newLogos: Record<string, string>) => {
-    setLogos(newLogos);
-    localStorage.setItem('hotel_signage_logos', JSON.stringify(newLogos));
+  const persist = (next: Record<string, string>) => {
+    localStorage.setItem('hotel_signage_logos', JSON.stringify(next));
+    return next;
   };
 
   const addLogos = (newEntries: Record<string, string>) => {
-    saveLogos({ ...logos, ...newEntries });
+    setLogos(prev => persist({ ...prev, ...newEntries }));
   };
 
   const removeLogo = (id: string) => {
-    const next = { ...logos };
-    delete next[id];
-    saveLogos(next);
+    setLogos(prev => {
+      const next = { ...prev };
+      delete next[id];
+      return persist(next);
+    });
   };
 
   return { logos, addLogos, removeLogo };

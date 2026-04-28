@@ -82,7 +82,7 @@ export function PDFPreview({ state, allLogos }: PDFPreviewProps) {
           </div>
 
           {/* White Area */}
-          <div className="flex-1 bg-white relative p-[5%]">
+          <div className="flex-1 bg-white relative p-[5%] overflow-hidden min-h-0">
             {count === 0 ? (
               <div className="w-full h-full flex items-center justify-center border-2 border-dashed border-gray-200 rounded-xl">
                 <span className="text-gray-400 font-medium">Sélectionnez 1 à 6 logos</span>
