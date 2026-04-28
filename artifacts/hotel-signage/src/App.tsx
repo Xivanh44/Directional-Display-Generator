@@ -20,6 +20,7 @@ import { ArrowLeft, ArrowRight, Minus, Upload, X, FileDown, GripVertical, Plus, 
 import { cn } from "@/lib/utils";
 
 import { useLogos } from "@/hooks/use-logos";
+import { useCustomTexts } from "@/hooks/use-custom-texts";
 import {
   generatePDF,
   generateAllVariantsPDF,
@@ -49,6 +50,7 @@ const queryClient = new QueryClient();
 function Main() {
   const { toast } = useToast();
   const { logos, addLogos, removeLogo } = useLogos();
+  const { customTexts, addCustomText, removeCustomText } = useCustomTexts();
   const [state, setState] = useState<SignageState>({
     format: 'A4',
     arrow: 'none',
@@ -293,11 +295,22 @@ function Main() {
           <div className="space-y-3">
             <Label className="text-sm font-medium">Texte du bandeau</Label>
             {(() => {
-              const isCustom = !TEXT_OPTIONS.includes(state.text as SignageText);
+              const isDefault = TEXT_OPTIONS.includes(state.text as SignageText);
+              const isSavedCustom = !isDefault && customTexts.includes(state.text);
+              const isEditing = !isDefault && !isSavedCustom;
+              const trimmed = state.text.trim();
+              const canSave =
+                isEditing &&
+                trimmed.length > 0 &&
+                !TEXT_OPTIONS.includes(trimmed as SignageText) &&
+                !customTexts.includes(trimmed);
+
+              const selectValue = isEditing ? '__custom__' : state.text;
+
               return (
                 <>
                   <Select
-                    value={isCustom ? '__custom__' : state.text}
+                    value={selectValue}
                     onValueChange={(v) => {
                       if (v === '__custom__') {
                         setState({ ...state, text: '' });
@@ -315,18 +328,89 @@ function Main() {
                           {opt}
                         </SelectItem>
                       ))}
+                      {customTexts.length > 0 && (
+                        <div className="my-1 h-px bg-border mx-2" />
+                      )}
+                      {customTexts.map((opt) => (
+                        <SelectItem key={opt} value={opt}>
+                          {opt}
+                        </SelectItem>
+                      ))}
+                      <div className="my-1 h-px bg-border mx-2" />
                       <SelectItem value="__custom__">Texte personnalisé…</SelectItem>
                     </SelectContent>
                   </Select>
-                  {isCustom && (
-                    <Input
-                      autoFocus
-                      value={state.text}
-                      onChange={(e) => setState({ ...state, text: e.target.value })}
-                      placeholder="Saisissez votre texte"
-                      maxLength={60}
-                      className="bg-white"
-                    />
+
+                  {isEditing && (
+                    <div className="flex gap-2">
+                      <Input
+                        autoFocus
+                        value={state.text}
+                        onChange={(e) => setState({ ...state, text: e.target.value })}
+                        placeholder="Saisissez votre texte"
+                        maxLength={60}
+                        className="bg-white flex-1"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={!canSave}
+                        onClick={() => {
+                          addCustomText(trimmed);
+                          setState({ ...state, text: trimmed });
+                          toast({
+                            title: "Texte enregistré",
+                            description: `« ${trimmed} » est maintenant disponible dans la liste.`,
+                          });
+                        }}
+                        className="h-9 text-xs whitespace-nowrap"
+                      >
+                        <Plus className="w-3.5 h-3.5 mr-1" />
+                        Enregistrer
+                      </Button>
+                    </div>
+                  )}
+
+                  {customTexts.length > 0 && (
+                    <div className="space-y-1 pt-1">
+                      <p className="text-[11px] text-muted-foreground">
+                        Mes textes enregistrés
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {customTexts.map((t) => (
+                          <span
+                            key={t}
+                            className={cn(
+                              "inline-flex items-center gap-1 rounded-full border bg-white px-2 py-0.5 text-[11px]",
+                              state.text === t && "border-primary bg-primary/5"
+                            )}
+                          >
+                            <button
+                              type="button"
+                              onClick={() => setState({ ...state, text: t })}
+                              className="truncate max-w-[140px]"
+                              title="Utiliser ce texte"
+                            >
+                              {t}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                removeCustomText(t);
+                                if (state.text === t) {
+                                  setState({ ...state, text: TEXT_OPTIONS[0] });
+                                }
+                              }}
+                              className="text-muted-foreground hover:text-destructive"
+                              title="Supprimer"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
                   )}
                 </>
               );
