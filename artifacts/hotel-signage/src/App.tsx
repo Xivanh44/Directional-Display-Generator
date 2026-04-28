@@ -5,15 +5,28 @@ import { useToast } from "@/hooks/use-toast";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ArrowLeft, ArrowRight, Minus, Upload, X, FileDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import { useLogos } from "@/hooks/use-logos";
-import { generatePDF, SignageState, PaperFormat, ArrowType } from "@/lib/pdf-generator";
+import {
+  generatePDF,
+  SignageState,
+  PaperFormat,
+  ArrowType,
+  TEXT_OPTIONS,
+  SignageText,
+} from "@/lib/pdf-generator";
 import { PDFPreview } from "@/components/PDFPreview";
 
 const queryClient = new QueryClient();
@@ -24,7 +37,7 @@ function Main() {
   const [state, setState] = useState<SignageState>({
     format: 'A4',
     arrow: 'none',
-    text: 'Réception',
+    text: TEXT_OPTIONS[0],
     selectedLogos: []
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -172,12 +185,21 @@ function Main() {
           {/* Texte */}
           <div className="space-y-3">
             <Label className="text-sm font-medium">Texte du bandeau</Label>
-            <Input 
+            <Select
               value={state.text}
-              onChange={e => setState({ ...state, text: e.target.value })}
-              placeholder="Ex: Restaurant"
-              className="bg-white"
-            />
+              onValueChange={(v: SignageText) => setState({ ...state, text: v })}
+            >
+              <SelectTrigger className="bg-white">
+                <SelectValue placeholder="Choisir un texte" />
+              </SelectTrigger>
+              <SelectContent>
+                {TEXT_OPTIONS.map((opt) => (
+                  <SelectItem key={opt} value={opt}>
+                    {opt}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Logos */}

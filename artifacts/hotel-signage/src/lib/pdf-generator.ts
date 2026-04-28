@@ -19,8 +19,20 @@ const FORMAT_DIMS = {
 };
 
 export const BANNER_HEIGHT_PCT = 0.22;
-export const ARROW_HEIGHT_PCT = 0.6; // relative to banner
-export const ARROW_MARGIN_PCT = 0.04; // relative to page width
+export const ARROW_HEIGHT_PCT = 0.55; // relative to banner
+export const ARROW_WIDTH_RATIO = 0.7; // chevron width / chevron height
+export const ARROW_STROKE_RATIO = 0.22; // stroke width / chevron height
+export const ARROW_MARGIN_PCT = 0.045; // relative to page width
+
+export const TEXT_OPTIONS = [
+  'Déjeuner',
+  'Dîner',
+  'Cocktail',
+  'Apéritif',
+  'Soirée Dansante',
+  'Salon privatif',
+] as const;
+export type SignageText = typeof TEXT_OPTIONS[number];
 
 const THEME = {
   beige: '#EAE3D2',
@@ -45,39 +57,39 @@ export async function generatePDF(state: SignageState, allLogos: Record<string, 
   doc.setFillColor(THEME.beigeRGB[0], THEME.beigeRGB[1], THEME.beigeRGB[2]);
   doc.rect(0, 0, w, bannerH, 'F');
 
-  // Arrow
+  // Arrow (chevron stroke)
   if (arrow !== 'none') {
-    doc.setFillColor(0, 0, 0);
-    const arrowH = bannerH * ARROW_HEIGHT_PCT;
-    const arrowW = arrowH * 1.5;
+    const chevronH = bannerH * ARROW_HEIGHT_PCT;
+    const chevronW = chevronH * ARROW_WIDTH_RATIO;
+    const stroke = chevronH * ARROW_STROKE_RATIO;
     const margin = w * ARROW_MARGIN_PCT;
-    const yCenter = bannerH / 2;
+    const yTop = (bannerH - chevronH) / 2;
 
-    const shaftH = arrowH * 0.4;
-    const shaftW = arrowW * 0.5;
+    doc.setDrawColor(0, 0, 0);
+    doc.setLineWidth(stroke);
+    doc.setLineCap('round');
+    doc.setLineJoin('round');
 
     if (arrow === 'left') {
-      const startX = margin;
-      // Head
-      doc.triangle(
-        startX, yCenter, 
-        startX + (arrowW - shaftW), yCenter - arrowH / 2, 
-        startX + (arrowW - shaftW), yCenter + arrowH / 2, 
-        'F'
+      const xRight = margin + chevronW;
+      // From top-right -> point (left-middle) -> bottom-right
+      doc.lines(
+        [[-chevronW, chevronH / 2], [chevronW, chevronH / 2]],
+        xRight,
+        yTop,
+        [1, 1],
+        'S'
       );
-      // Shaft
-      doc.rect(startX + (arrowW - shaftW), yCenter - shaftH / 2, shaftW, shaftH, 'F');
     } else {
-      const endX = w - margin;
-      // Head
-      doc.triangle(
-        endX, yCenter, 
-        endX - (arrowW - shaftW), yCenter - arrowH / 2, 
-        endX - (arrowW - shaftW), yCenter + arrowH / 2, 
-        'F'
+      const xLeft = w - margin - chevronW;
+      // From top-left -> point (right-middle) -> bottom-left
+      doc.lines(
+        [[chevronW, chevronH / 2], [-chevronW, chevronH / 2]],
+        xLeft,
+        yTop,
+        [1, 1],
+        'S'
       );
-      // Shaft
-      doc.rect(endX - arrowW, yCenter - shaftH / 2, shaftW, shaftH, 'F');
     }
   }
 
@@ -86,10 +98,10 @@ export async function generatePDF(state: SignageState, allLogos: Record<string, 
     doc.setFont('helvetica', 'bold');
     
     // Calculate max available width for text
-    const arrowSpace = (bannerH * ARROW_HEIGHT_PCT * 1.5) + (w * ARROW_MARGIN_PCT);
+    const arrowSpace = (bannerH * ARROW_HEIGHT_PCT * ARROW_WIDTH_RATIO) + (w * ARROW_MARGIN_PCT);
     let maxTextW = w * 0.9;
     if (arrow === 'left' || arrow === 'right') {
-       maxTextW = w - (arrowSpace * 2); // keep symmetric
+       maxTextW = w - (arrowSpace * 2) - (w * 0.04); // keep symmetric with breathing room
     }
 
     let fontSize = format === 'A3' ? 90 : 65;

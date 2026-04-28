@@ -1,5 +1,12 @@
 import React, { useMemo } from 'react';
-import { SignageState, BANNER_HEIGHT_PCT, ARROW_HEIGHT_PCT, ARROW_MARGIN_PCT } from '@/lib/pdf-generator';
+import {
+  SignageState,
+  BANNER_HEIGHT_PCT,
+  ARROW_HEIGHT_PCT,
+  ARROW_WIDTH_RATIO,
+  ARROW_STROKE_RATIO,
+  ARROW_MARGIN_PCT,
+} from '@/lib/pdf-generator';
 
 interface PDFPreviewProps {
   state: SignageState;
@@ -42,28 +49,28 @@ export function PDFPreview({ state, allLogos }: PDFPreviewProps) {
             }}
           >
             {arrow === 'left' && (
-              <div 
+              <div
                 className="absolute flex items-center justify-start"
                 style={{
                   left: `${ARROW_MARGIN_PCT * 100}%`,
                   height: `${ARROW_HEIGHT_PCT * 100}%`,
-                  aspectRatio: '1.5',
+                  aspectRatio: `${ARROW_WIDTH_RATIO}`,
                 }}
               >
-                <ArrowSvg direction="left" />
+                <ChevronSvg direction="left" />
               </div>
             )}
-            
+
             {arrow === 'right' && (
-              <div 
+              <div
                 className="absolute flex items-center justify-end"
                 style={{
                   right: `${ARROW_MARGIN_PCT * 100}%`,
                   height: `${ARROW_HEIGHT_PCT * 100}%`,
-                  aspectRatio: '1.5',
+                  aspectRatio: `${ARROW_WIDTH_RATIO}`,
                 }}
               >
-                <ArrowSvg direction="right" />
+                <ChevronSvg direction="right" />
               </div>
             )}
 
@@ -120,14 +127,31 @@ function LogoCell({ src }: { src: string }) {
   );
 }
 
-function ArrowSvg({ direction }: { direction: 'left' | 'right' }) {
+function ChevronSvg({ direction }: { direction: 'left' | 'right' }) {
+  // viewBox uses ARROW_WIDTH_RATIO so the chevron fits its container.
+  const W = 100 * ARROW_WIDTH_RATIO;
+  const H = 100;
+  const stroke = H * ARROW_STROKE_RATIO;
+  // Inset the path by half the stroke so the rounded caps stay inside the box.
+  const inset = stroke / 2;
+  const path =
+    direction === 'right'
+      ? `M ${inset},${inset} L ${W - inset},${H / 2} L ${inset},${H - inset}`
+      : `M ${W - inset},${inset} L ${inset},${H / 2} L ${W - inset},${H - inset}`;
   return (
-    <svg viewBox="0 0 150 100" className="w-full h-full" preserveAspectRatio="xMidYMid meet">
-      {direction === 'left' ? (
-        <path d="M60,0 L60,30 L150,30 L150,70 L60,70 L60,100 L0,50 Z" fill="#000000" />
-      ) : (
-        <path d="M90,0 L90,30 L0,30 L0,70 L90,70 L90,100 L150,50 Z" fill="#000000" />
-      )}
+    <svg
+      viewBox={`0 0 ${W} ${H}`}
+      className="w-full h-full"
+      preserveAspectRatio="xMidYMid meet"
+    >
+      <path
+        d={path}
+        fill="none"
+        stroke="#000000"
+        strokeWidth={stroke}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
