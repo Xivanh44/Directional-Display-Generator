@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Affichages Hôtel"
+version = "1.0.0"
+id = "artifacts/hotel-signage"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 23526
+
+[services.development]
+run = "pnpm --filter @workspace/hotel-signage run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/hotel-signage", "run", "build" ]
+publicDir = "artifacts/hotel-signage/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "23526"
+BASE_PATH = "/"
