@@ -99,9 +99,10 @@ function renderPage(
     }
   }
 
-  // Text
+  // Text — Arial, normal weight, black (Helvetica is jsPDF's standard
+  // PDF substitute for Arial; PDF readers map it to Arial on display).
   if (text.trim()) {
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('helvetica', 'normal');
 
     const arrowSpace = (bannerH * ARROW_HEIGHT_PCT * ARROW_WIDTH_RATIO) + (w * ARROW_MARGIN_PCT);
     let maxTextW = w * 0.9;

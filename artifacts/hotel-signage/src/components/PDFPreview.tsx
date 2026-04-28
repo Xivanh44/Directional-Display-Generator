@@ -74,8 +74,11 @@ export function PDFPreview({ state, allLogos }: PDFPreviewProps) {
               </div>
             )}
 
-            <div className="font-bold text-black font-sans w-[80%] text-center leading-none" style={{
-              fontSize: 'min(12cqw, 18cqh)'
+            <div className="w-[80%] text-center leading-none" style={{
+              fontSize: 'min(12cqw, 18cqh)',
+              fontFamily: 'Arial, sans-serif',
+              fontWeight: 'normal',
+              color: '#000'
             }}>
               {text}
             </div>
