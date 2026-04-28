@@ -15,13 +15,14 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowLeft, ArrowRight, Minus, Upload, X, FileDown, GripVertical } from "lucide-react";
+import { ArrowLeft, ArrowRight, Minus, Upload, X, FileDown, GripVertical, Plus, ListPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import { useLogos } from "@/hooks/use-logos";
 import {
   generatePDF,
   generateAllVariantsPDF,
+  generateBulkPDF,
   SignageState,
   PaperFormat,
   ArrowType,
@@ -29,6 +30,18 @@ import {
   SignageText,
 } from "@/lib/pdf-generator";
 import { PDFPreview } from "@/components/PDFPreview";
+
+interface QueueItem {
+  id: string;
+  item: SignageState;
+  quantity: number;
+}
+
+const ARROW_LABEL: Record<ArrowType, string> = {
+  left: 'Gauche',
+  none: 'Sans flèche',
+  right: 'Droite',
+};
 
 const queryClient = new QueryClient();
 
@@ -41,7 +54,65 @@ function Main() {
     text: TEXT_OPTIONS[0],
     selectedLogos: []
   });
+  const [queue, setQueue] = useState<QueueItem[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const a4Items = queue.filter(q => q.item.format === 'A4');
+  const a3Items = queue.filter(q => q.item.format === 'A3');
+  const a4Pages = a4Items.reduce((s, i) => s + i.quantity, 0);
+  const a3Pages = a3Items.reduce((s, i) => s + i.quantity, 0);
+
+  const addToQueue = () => {
+    setQueue(q => [
+      ...q,
+      {
+        id: crypto.randomUUID(),
+        item: { ...state, selectedLogos: [...state.selectedLogos] },
+        quantity: 1,
+      },
+    ]);
+    toast({
+      title: "Affichage ajouté",
+      description: `${state.format} — ${state.text} — ${ARROW_LABEL[state.arrow]}`,
+    });
+  };
+
+  const setQuantity = (id: string, qty: number) => {
+    if (qty < 1 || qty > 99) return;
+    setQueue(q => q.map(i => (i.id === id ? { ...i, quantity: qty } : i)));
+  };
+
+  const removeFromQueue = (id: string) => {
+    setQueue(q => q.filter(i => i.id !== id));
+  };
+
+  const loadFromQueue = (id: string) => {
+    const target = queue.find(q => q.id === id);
+    if (target) {
+      setState({ ...target.item, selectedLogos: [...target.item.selectedLogos] });
+    }
+  };
+
+  const handleBulkExport = async (format: PaperFormat) => {
+    const items = queue.filter(q => q.item.format === format);
+    if (items.length === 0) return;
+    const expanded = items.flatMap(q =>
+      Array.from({ length: q.quantity }, () => q.item)
+    );
+    try {
+      await generateBulkPDF(expanded, format, logos);
+      toast({
+        title: "Export réussi",
+        description: `PDF ${format} — ${expanded.length} affichage(s) téléchargé.`,
+      });
+    } catch (e) {
+      toast({
+        variant: "destructive",
+        title: "Erreur d'export",
+        description: "Une erreur est survenue lors de la génération du PDF.",
+      });
+    }
+  };
 
   const handleFile = (file: File) => {
     if (!file.type.startsWith('image/')) return;
@@ -288,22 +359,89 @@ function Main() {
               )}
             </div>
           </div>
+
+          {/* Compilation queue */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-sm font-medium">
+                Liste de compilation ({queue.length})
+              </Label>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={addToQueue}
+                disabled={state.selectedLogos.length === 0}
+                className="h-8 text-xs"
+              >
+                <ListPlus className="w-4 h-4 mr-2" />
+                Ajouter cet affichage
+              </Button>
+            </div>
+
+            {queue.length === 0 ? (
+              <div className="py-6 text-center border-2 border-dashed rounded-md text-xs text-muted-foreground">
+                Configurez un affichage puis cliquez sur "Ajouter cet affichage"
+                pour le mettre dans la liste, et compilez ensuite tous les A4
+                ou A3 en un seul PDF.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {queue.map((q) => (
+                  <QueueRow
+                    key={q.id}
+                    queueItem={q}
+                    onLoad={() => loadFromQueue(q.id)}
+                    onRemove={() => removeFromQueue(q.id)}
+                    onQuantity={(n) => setQuantity(q.id, n)}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="p-6 border-t mt-auto space-y-2">
-          <Button onClick={handleExport} size="lg" className="w-full text-base h-14">
+          <Button onClick={handleExport} size="lg" className="w-full text-base h-12">
             <FileDown className="w-5 h-5 mr-2" />
-            Exporter en PDF
+            Exporter cet affichage
           </Button>
           <Button
             onClick={handleExportAllVariants}
             variant="outline"
-            size="lg"
-            className="w-full text-sm h-11"
+            size="sm"
+            className="w-full text-xs h-9"
           >
-            <FileDown className="w-4 h-4 mr-2" />
+            <FileDown className="w-3.5 h-3.5 mr-2" />
             Exporter les 3 variantes
           </Button>
+
+          {(a4Pages > 0 || a3Pages > 0) && (
+            <div className="pt-2 mt-2 border-t space-y-2">
+              <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
+                Compilation de la liste
+              </p>
+              <Button
+                onClick={() => handleBulkExport('A4')}
+                disabled={a4Pages === 0}
+                size="lg"
+                className="w-full text-sm h-11"
+                variant={a4Pages > 0 ? 'default' : 'secondary'}
+              >
+                <FileDown className="w-4 h-4 mr-2" />
+                PDF A4 — {a4Pages} affichage{a4Pages > 1 ? 's' : ''}
+              </Button>
+              <Button
+                onClick={() => handleBulkExport('A3')}
+                disabled={a3Pages === 0}
+                size="lg"
+                className="w-full text-sm h-11"
+                variant={a3Pages > 0 ? 'default' : 'secondary'}
+              >
+                <FileDown className="w-4 h-4 mr-2" />
+                PDF A3 — {a3Pages} affichage{a3Pages > 1 ? 's' : ''}
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -312,6 +450,81 @@ function Main() {
         <PDFPreview state={state} allLogos={logos} />
       </div>
 
+    </div>
+  );
+}
+
+function QueueRow({
+  queueItem,
+  onLoad,
+  onRemove,
+  onQuantity,
+}: {
+  queueItem: QueueItem;
+  onLoad: () => void;
+  onRemove: () => void;
+  onQuantity: (n: number) => void;
+}) {
+  const { item, quantity } = queueItem;
+  const ArrowIcon =
+    item.arrow === 'left' ? ArrowLeft : item.arrow === 'right' ? ArrowRight : Minus;
+
+  return (
+    <div className="flex items-center gap-2 rounded-md border bg-white p-2">
+      <button
+        onClick={onLoad}
+        className="flex-1 min-w-0 text-left flex items-center gap-2 hover:bg-muted/40 rounded p-1 -m-1"
+        title="Cliquer pour recharger dans l'éditeur"
+      >
+        <span
+          className={cn(
+            "shrink-0 inline-flex items-center justify-center text-[10px] font-bold rounded px-1.5 py-0.5",
+            item.format === 'A4'
+              ? "bg-blue-100 text-blue-800"
+              : "bg-amber-100 text-amber-800"
+          )}
+        >
+          {item.format}
+        </span>
+        <ArrowIcon className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
+        <span className="text-xs font-medium truncate">{item.text}</span>
+        <span className="text-[10px] text-muted-foreground shrink-0">
+          · {item.selectedLogos.length} logo{item.selectedLogos.length > 1 ? 's' : ''}
+        </span>
+      </button>
+
+      <div className="flex items-center gap-1 shrink-0">
+        <Button
+          size="icon"
+          variant="outline"
+          className="h-6 w-6"
+          onClick={() => onQuantity(quantity - 1)}
+          disabled={quantity <= 1}
+        >
+          <Minus className="w-3 h-3" />
+        </Button>
+        <span className="text-xs font-semibold w-5 text-center tabular-nums">
+          {quantity}
+        </span>
+        <Button
+          size="icon"
+          variant="outline"
+          className="h-6 w-6"
+          onClick={() => onQuantity(quantity + 1)}
+          disabled={quantity >= 99}
+        >
+          <Plus className="w-3 h-3" />
+        </Button>
+      </div>
+
+      <Button
+        size="icon"
+        variant="ghost"
+        className="h-6 w-6 text-muted-foreground hover:text-destructive shrink-0"
+        onClick={onRemove}
+      >
+        <X className="w-3.5 h-3.5" />
+      </Button>
     </div>
   );
 }

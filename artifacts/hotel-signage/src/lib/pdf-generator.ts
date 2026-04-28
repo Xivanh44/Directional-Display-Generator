@@ -244,6 +244,34 @@ export async function generateAllVariantsPDF(
   doc.save(`affichage-${state.format.toLowerCase()}-toutes-variantes-${slug}.pdf`);
 }
 
+export async function generateBulkPDF(
+  items: SignageState[],
+  format: PaperFormat,
+  allLogos: Record<string, string>,
+) {
+  if (items.length === 0) return;
+
+  const uniqueUrls = Array.from(
+    new Set(
+      items.flatMap((it) =>
+        it.selectedLogos.map((id) => allLogos[id]).filter((u): u is string => Boolean(u))
+      )
+    )
+  );
+  const imageMeta = await preloadImageMeta(uniqueUrls);
+
+  const doc = makeDoc(format);
+
+  items.forEach((item, idx) => {
+    if (idx > 0) {
+      doc.addPage(format.toLowerCase(), 'landscape');
+    }
+    renderPage(doc, { ...item, format }, allLogos, imageMeta);
+  });
+
+  doc.save(`compilation-${format.toLowerCase()}-${items.length}-affichages.pdf`);
+}
+
 function getImageProperties(dataUrl: string): Promise<ImageMeta | null> {
   return new Promise((resolve) => {
     const img = new Image();
