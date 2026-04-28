@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowLeft, ArrowRight, Minus, Upload, X, FileDown } from "lucide-react";
+import { ArrowLeft, ArrowRight, Minus, Upload, X, FileDown, GripVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import { useLogos } from "@/hooks/use-logos";
@@ -115,6 +115,24 @@ function Main() {
       }
       if (prev.selectedLogos.length >= 6) return prev;
       return { ...prev, selectedLogos: [...prev.selectedLogos, id] };
+    });
+  };
+
+  const reorderLogos = (fromIndex: number, toIndex: number) => {
+    setState(prev => {
+      if (
+        fromIndex === toIndex ||
+        fromIndex < 0 ||
+        toIndex < 0 ||
+        fromIndex >= prev.selectedLogos.length ||
+        toIndex >= prev.selectedLogos.length
+      ) {
+        return prev;
+      }
+      const next = [...prev.selectedLogos];
+      const [moved] = next.splice(fromIndex, 1);
+      next.splice(toIndex, 0, moved);
+      return { ...prev, selectedLogos: next };
     });
   };
 
@@ -229,7 +247,15 @@ function Main() {
               </Button>
               <input type="file" multiple accept="image/*" className="hidden" ref={fileInputRef} onChange={onFileChange} />
             </div>
-            
+
+            {state.selectedLogos.length >= 2 && (
+              <SelectedLogosReorder
+                selectedLogos={state.selectedLogos}
+                logos={logos}
+                onReorder={reorderLogos}
+              />
+            )}
+
             <div className="grid grid-cols-3 gap-2">
               {Object.entries(logos).map(([id, src]) => {
                 const isSelected = state.selectedLogos.includes(id);
@@ -286,6 +312,74 @@ function Main() {
         <PDFPreview state={state} allLogos={logos} />
       </div>
 
+    </div>
+  );
+}
+
+function SelectedLogosReorder({
+  selectedLogos,
+  logos,
+  onReorder,
+}: {
+  selectedLogos: string[];
+  logos: Record<string, string>;
+  onReorder: (from: number, to: number) => void;
+}) {
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [overIndex, setOverIndex] = useState<number | null>(null);
+
+  return (
+    <div className="rounded-md border bg-muted/30 p-2">
+      <div className="flex items-center gap-1 mb-2 text-[11px] text-muted-foreground">
+        <GripVertical className="w-3 h-3" />
+        <span>Glissez pour réorganiser</span>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {selectedLogos.map((id, idx) => {
+          const src = logos[id];
+          if (!src) return null;
+          const isOver = overIndex === idx && dragIndex !== null && dragIndex !== idx;
+          return (
+            <div
+              key={id}
+              draggable
+              onDragStart={(e) => {
+                setDragIndex(idx);
+                e.dataTransfer.effectAllowed = 'move';
+              }}
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                if (overIndex !== idx) setOverIndex(idx);
+              }}
+              onDragLeave={() => {
+                if (overIndex === idx) setOverIndex(null);
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                if (dragIndex !== null) onReorder(dragIndex, idx);
+                setDragIndex(null);
+                setOverIndex(null);
+              }}
+              onDragEnd={() => {
+                setDragIndex(null);
+                setOverIndex(null);
+              }}
+              className={cn(
+                "relative w-14 h-14 rounded-md border bg-white p-1 cursor-grab active:cursor-grabbing transition-all",
+                dragIndex === idx && "opacity-40",
+                isOver && "ring-2 ring-primary ring-offset-1"
+              )}
+              title={`Position ${idx + 1}`}
+            >
+              <img src={src} alt="" className="w-full h-full object-contain" />
+              <span className="absolute -top-1.5 -left-1.5 bg-primary text-primary-foreground text-[10px] font-semibold rounded-full w-4 h-4 flex items-center justify-center">
+                {idx + 1}
+              </span>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
