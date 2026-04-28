@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import {
   SignageState,
   BANNER_HEIGHT_PCT,
@@ -15,9 +15,18 @@ interface PDFPreviewProps {
 
 export function PDFPreview({ state, allLogos }: PDFPreviewProps) {
   const aspectRatio = 297 / 210; // A4/A3 Landscape
-  
+
   const { format, arrow, text, selectedLogos } = state;
   const count = selectedLogos.length;
+
+  // Reserved horizontal space (per side) on banner so text never overlaps the arrow.
+  // Arrow visual width as % of banner WIDTH = arrow_h_pct * banner_h_pct * arrow_w_ratio / aspectRatio.
+  const arrowReservedPct =
+    (ARROW_MARGIN_PCT +
+      (ARROW_HEIGHT_PCT * BANNER_HEIGHT_PCT * ARROW_WIDTH_RATIO) / aspectRatio) *
+    100;
+  const SAFE_GAP_PCT = 2;
+  const sidePadPct = arrow !== 'none' ? arrowReservedPct + SAFE_GAP_PCT : 5;
 
   const getGridClasses = () => {
     if (count === 1) return "grid-cols-1 grid-rows-1";
@@ -74,13 +83,14 @@ export function PDFPreview({ state, allLogos }: PDFPreviewProps) {
               </div>
             )}
 
-            <div className="w-[80%] text-center leading-none" style={{
-              fontSize: 'min(12cqw, 18cqh)',
-              fontFamily: 'Arial, sans-serif',
-              fontWeight: 'normal',
-              color: '#000'
-            }}>
-              {text}
+            <div
+              className="absolute inset-0 flex items-center justify-center"
+              style={{
+                paddingLeft: `${sidePadPct}%`,
+                paddingRight: `${sidePadPct}%`,
+              }}
+            >
+              <AutoFitText text={text} />
             </div>
           </div>
 
@@ -117,6 +127,68 @@ export function PDFPreview({ state, allLogos }: PDFPreviewProps) {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function AutoFitText({ text }: { text: string }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const measureRef = useRef<HTMLSpanElement>(null);
+  const [fontSize, setFontSize] = useState(16);
+
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    const measure = measureRef.current;
+    if (!container || !measure) return;
+
+    const fit = () => {
+      const cw = container.clientWidth;
+      const ch = container.clientHeight;
+      if (cw <= 0 || ch <= 0 || !text) return;
+
+      let lo = 4;
+      let hi = ch * 1.2;
+      let best = lo;
+      for (let i = 0; i < 22; i++) {
+        const mid = (lo + hi) / 2;
+        measure.style.fontSize = `${mid}px`;
+        const tw = measure.scrollWidth;
+        const th = measure.scrollHeight;
+        if (tw <= cw && th <= ch) {
+          best = mid;
+          lo = mid;
+        } else {
+          hi = mid;
+        }
+      }
+      setFontSize(best);
+    };
+
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(container);
+    return () => ro.disconnect();
+  }, [text]);
+
+  return (
+    <div
+      ref={containerRef}
+      className="w-full h-full flex items-center justify-center overflow-hidden"
+    >
+      <span
+        ref={measureRef}
+        style={{
+          fontSize: `${fontSize}px`,
+          whiteSpace: 'nowrap',
+          fontFamily: 'Arial, sans-serif',
+          fontWeight: 'normal',
+          color: '#000',
+          lineHeight: 1,
+          display: 'inline-block',
+        }}
+      >
+        {text}
+      </span>
     </div>
   );
 }

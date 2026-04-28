@@ -104,20 +104,36 @@ function renderPage(
   if (text.trim()) {
     doc.setFont('helvetica', 'normal');
 
-    const arrowSpace = (bannerH * ARROW_HEIGHT_PCT * ARROW_WIDTH_RATIO) + (w * ARROW_MARGIN_PCT);
-    let maxTextW = w * 0.9;
-    if (arrow === 'left' || arrow === 'right') {
-      maxTextW = w - (arrowSpace * 2) - (w * 0.04);
+    // Available width: bannerWidth minus reserved zones for the arrow on each
+    // side (so centered text never collides with the chevron).
+    const arrowSpace =
+      bannerH * ARROW_HEIGHT_PCT * ARROW_WIDTH_RATIO + w * ARROW_MARGIN_PCT;
+    const safetyPad = w * 0.02;
+    const maxTextW =
+      arrow === 'none'
+        ? w * 0.9
+        : w - 2 * arrowSpace - safetyPad * 2;
+    // Available height: ~80% of banner so a single line breathes vertically.
+    const maxTextH = bannerH * 0.8;
+
+    // Binary search the largest font size (in pt) that fits both width & height.
+    // jsPDF uses pt internally; 1pt = 0.3528 mm.
+    let lo = 4;
+    let hi = (maxTextH / 0.3528) * 1.05;
+    let best = lo;
+    for (let i = 0; i < 24; i++) {
+      const mid = (lo + hi) / 2;
+      doc.setFontSize(mid);
+      const tw = doc.getTextWidth(text);
+      const th = mid * 0.3528; // approximate cap height in mm
+      if (tw <= maxTextW && th <= maxTextH) {
+        best = mid;
+        lo = mid;
+      } else {
+        hi = mid;
+      }
     }
-
-    let fontSize = format === 'A3' ? 90 : 65;
-    doc.setFontSize(fontSize);
-
-    while (doc.getTextWidth(text) > maxTextW && fontSize > 10) {
-      fontSize -= 2;
-      doc.setFontSize(fontSize);
-    }
-
+    doc.setFontSize(best);
     doc.setTextColor(0, 0, 0);
     doc.text(text, w / 2, bannerH / 2, { align: 'center', baseline: 'middle' });
   }

@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ArrowLeft, ArrowRight, Minus, Upload, X, FileDown, GripVertical, Plus, ListPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -291,21 +292,45 @@ function Main() {
           {/* Texte */}
           <div className="space-y-3">
             <Label className="text-sm font-medium">Texte du bandeau</Label>
-            <Select
-              value={state.text}
-              onValueChange={(v: SignageText) => setState({ ...state, text: v })}
-            >
-              <SelectTrigger className="bg-white">
-                <SelectValue placeholder="Choisir un texte" />
-              </SelectTrigger>
-              <SelectContent>
-                {TEXT_OPTIONS.map((opt) => (
-                  <SelectItem key={opt} value={opt}>
-                    {opt}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {(() => {
+              const isCustom = !TEXT_OPTIONS.includes(state.text as SignageText);
+              return (
+                <>
+                  <Select
+                    value={isCustom ? '__custom__' : state.text}
+                    onValueChange={(v) => {
+                      if (v === '__custom__') {
+                        setState({ ...state, text: '' });
+                      } else {
+                        setState({ ...state, text: v });
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="bg-white">
+                      <SelectValue placeholder="Choisir un texte" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TEXT_OPTIONS.map((opt) => (
+                        <SelectItem key={opt} value={opt}>
+                          {opt}
+                        </SelectItem>
+                      ))}
+                      <SelectItem value="__custom__">Texte personnalisé…</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {isCustom && (
+                    <Input
+                      autoFocus
+                      value={state.text}
+                      onChange={(e) => setState({ ...state, text: e.target.value })}
+                      placeholder="Saisissez votre texte"
+                      maxLength={60}
+                      className="bg-white"
+                    />
+                  )}
+                </>
+              );
+            })()}
           </div>
 
           {/* Logos */}
