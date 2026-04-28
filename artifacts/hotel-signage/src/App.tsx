@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
 import { useLogos } from "@/hooks/use-logos";
 import {
   generatePDF,
+  generateAllVariantsPDF,
   SignageState,
   PaperFormat,
   ArrowType,
@@ -81,6 +82,22 @@ function Main() {
       toast({
         title: "Export réussi",
         description: "Votre affiche a été téléchargée.",
+      });
+    } catch (e) {
+      toast({
+        variant: "destructive",
+        title: "Erreur d'export",
+        description: "Une erreur est survenue lors de la génération du PDF.",
+      });
+    }
+  };
+
+  const handleExportAllVariants = async () => {
+    try {
+      await generateAllVariantsPDF(state, logos);
+      toast({
+        title: "Export réussi",
+        description: "PDF des 3 variantes (gauche, sans flèche, droite) téléchargé.",
       });
     } catch (e) {
       toast({
@@ -247,10 +264,19 @@ function Main() {
           </div>
         </div>
 
-        <div className="p-6 border-t mt-auto">
+        <div className="p-6 border-t mt-auto space-y-2">
           <Button onClick={handleExport} size="lg" className="w-full text-base h-14">
             <FileDown className="w-5 h-5 mr-2" />
             Exporter en PDF
+          </Button>
+          <Button
+            onClick={handleExportAllVariants}
+            variant="outline"
+            size="lg"
+            className="w-full text-sm h-11"
+          >
+            <FileDown className="w-4 h-4 mr-2" />
+            Exporter les 3 variantes
           </Button>
         </div>
       </div>
