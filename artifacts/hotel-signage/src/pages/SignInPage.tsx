@@ -54,8 +54,10 @@ export function SignInPage() {
       if (result.status === 'complete') {
         await clerkSetActive({ session: result.createdSessionId });
         setLocation('/app');
+      } else if (result.status === 'needs_second_factor') {
+        setError('Authentification à deux facteurs non supportée.');
       } else {
-        setError('Connexion incomplète. Veuillez réessayer.');
+        setError(`Connexion incomplète (status: ${result.status}). Veuillez réessayer.`);
       }
     } catch (err: unknown) {
       const clerkErr = err as { errors?: { code: string; message: string }[] };
