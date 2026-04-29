@@ -1,5 +1,5 @@
 import { useState, FormEvent } from 'react';
-import { useClerk } from '@clerk/react';
+import { useSignIn } from '@clerk/react';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +9,7 @@ import { Eye, EyeOff, Loader2 } from 'lucide-react';
 const basePath = (import.meta.env.BASE_URL as string).replace(/\/$/, '');
 
 export function SignInPage() {
-  const clerk = useClerk();
+  const { signIn, setActive } = useSignIn();
   const [, setLocation] = useLocation();
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
@@ -22,18 +22,37 @@ export function SignInPage() {
     setError('');
     setLoading(true);
     try {
-      // Use the Clerk client directly — avoids useSignIn() isLoaded timing issues
-      const client = (clerk as any).client ?? (window as any).Clerk?.client;
-      if (!client?.signIn) {
-        setError('Service non disponible. Veuillez rafraîchir la page et réessayer.');
+      const res = await fetch(`${basePath}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: identifier.trim().toLowerCase(), password }),
+      });
+
+      const data = await res.json() as { token?: string; error?: string };
+
+      if (!res.ok) {
+        setError(data.error ?? 'Identifiant ou mot de passe incorrect.');
         return;
       }
-      const result = await client.signIn.create({
-        identifier: identifier.trim(),
-        password,
-      });
+
+      if (!data.token) {
+        setError("Erreur d'authentification. Veuillez réessayer.");
+        return;
+      }
+
+      // Try useSignIn hook first; fall back to window.Clerk if not yet loaded
+      const clerkSignIn = signIn ?? (window as any).Clerk?.client?.signIn;
+      const clerkSetActive = setActive ?? ((window as any).Clerk?.setActive?.bind((window as any).Clerk));
+
+      if (!clerkSignIn) {
+        setError('Service non disponible. Veuillez ouvrir la page dans un nouvel onglet.');
+        return;
+      }
+
+      const result = await clerkSignIn.create({ strategy: 'ticket', ticket: data.token });
+
       if (result.status === 'complete') {
-        await clerk.setActive({ session: result.createdSessionId });
+        await clerkSetActive({ session: result.createdSessionId });
         setLocation('/app');
       } else {
         setError('Connexion incomplète. Veuillez réessayer.');
@@ -41,17 +60,7 @@ export function SignInPage() {
     } catch (err: unknown) {
       const clerkErr = err as { errors?: { code: string; message: string }[] };
       if (clerkErr?.errors?.[0]) {
-        const { code, message } = clerkErr.errors[0];
-        if (
-          code === 'form_password_incorrect' ||
-          code === 'form_identifier_not_found' ||
-          message.toLowerCase().includes('password') ||
-          message.toLowerCase().includes('identifier')
-        ) {
-          setError('Identifiant ou mot de passe incorrect.');
-        } else {
-          setError(message);
-        }
+        setError(clerkErr.errors[0].message);
       } else {
         setError('Une erreur est survenue. Veuillez réessayer.');
       }
@@ -64,7 +73,6 @@ export function SignInPage() {
     <div className="min-h-[100dvh] flex items-center justify-center bg-[#EAE3D2] px-4">
       <div className="w-full max-w-sm">
         <div className="bg-white rounded-2xl shadow-xl ring-1 ring-black/5 overflow-hidden">
-          {/* Header */}
           <div className="px-8 pt-8 pb-6 text-center border-b border-border/40">
             <img
               src={`${basePath}/logo.svg`}
@@ -77,7 +85,6 @@ export function SignInPage() {
             <p className="text-sm text-muted-foreground mt-1">Accédez à votre espace</p>
           </div>
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="px-8 py-6 space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="identifier" className="text-sm">Identifiant</Label>
@@ -131,7 +138,6 @@ export function SignInPage() {
             </Button>
           </form>
 
-          {/* Footer */}
           <div className="px-8 pb-6 text-center space-y-2">
             <p className="text-xs text-muted-foreground">
               Les accès sont créés par le manageur.

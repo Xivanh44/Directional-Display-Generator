@@ -1,5 +1,8 @@
 import { Router } from "express";
 import { getAuth, clerkClient } from "@clerk/express";
+import bcryptjs from "bcryptjs";
+import { db, hotelUsersTable } from "@workspace/db";
+import { eq } from "drizzle-orm";
 
 const router = Router();
 
@@ -18,12 +21,11 @@ async function requireManager(req: any, res: any, next: any) {
 
 router.get("/admin/users", requireManager, async (req, res) => {
   try {
-    const clerk = await clerkClient(req);
-    const { data: users } = await clerk.users.getUserList({ limit: 100 });
+    const users = await db.select().from(hotelUsersTable);
     const result = users.map((u) => ({
-      id: u.id,
+      id: u.clerkUserId,
       username: u.username,
-      role: (u.publicMetadata as any)?.role ?? "utilisateur",
+      role: u.role,
       createdAt: u.createdAt,
     }));
     res.json(result);
@@ -53,25 +55,45 @@ router.post("/admin/users", requireManager, async (req, res) => {
     return res.status(400).json({ error: "Le mot de passe doit faire au moins 8 caractères" });
   }
 
-  try {
-    const clerk = await clerkClient(req);
-    const sanitizedUsername = username.trim().replace(/[^a-zA-Z0-9_.-]/g, "");
-    if (sanitizedUsername.length < 2) {
-      return res.status(400).json({ error: "Identifiant invalide" });
-    }
-    const generatedEmail = `${sanitizedUsername.toLowerCase()}@hotel-signage.internal`;
+  const sanitizedUsername = username.trim().replace(/[^a-zA-Z0-9_.-]/g, "").toLowerCase();
+  if (sanitizedUsername.length < 2) {
+    return res.status(400).json({ error: "Identifiant invalide" });
+  }
 
-    const user = await clerk.users.createUser({
+  try {
+    const existing = await db
+      .select()
+      .from(hotelUsersTable)
+      .where(eq(hotelUsersTable.username, sanitizedUsername))
+      .limit(1);
+    if (existing.length > 0) {
+      return res.status(409).json({ error: "Cet identifiant est déjà utilisé" });
+    }
+
+    const generatedEmail = `${sanitizedUsername}@hotel-signage.internal`;
+    const internalPassword = `internal-${Date.now()}-${Math.random().toString(36)}`;
+
+    const clerk = await clerkClient(req);
+    const clerkUser = await clerk.users.createUser({
       username: sanitizedUsername,
       emailAddress: [generatedEmail],
-      password,
+      password: internalPassword,
       publicMetadata: { role: role ?? "utilisateur" },
     });
 
+    const passwordHash = await bcryptjs.hash(password, 12);
+
+    await db.insert(hotelUsersTable).values({
+      clerkUserId: clerkUser.id,
+      username: sanitizedUsername,
+      passwordHash,
+      role: role ?? "utilisateur",
+    });
+
     res.status(201).json({
-      id: user.id,
-      username: user.username,
-      role: (user.publicMetadata as any)?.role,
+      id: clerkUser.id,
+      username: sanitizedUsername,
+      role: role ?? "utilisateur",
     });
   } catch (err: any) {
     req.log.error({ err }, "Failed to create user");
@@ -87,6 +109,25 @@ router.post("/admin/users", requireManager, async (req, res) => {
   }
 });
 
+router.put("/admin/users/:id/password", requireManager, async (req, res) => {
+  const { id } = req.params;
+  const { password } = req.body as { password?: string };
+  if (!password || password.length < 8) {
+    return res.status(400).json({ error: "Le mot de passe doit faire au moins 8 caractères" });
+  }
+  try {
+    const passwordHash = await bcryptjs.hash(password, 12);
+    await db
+      .update(hotelUsersTable)
+      .set({ passwordHash })
+      .where(eq(hotelUsersTable.clerkUserId, id));
+    res.status(204).end();
+  } catch (err) {
+    req.log.error({ err }, "Failed to update password");
+    res.status(500).json({ error: "Erreur lors de la mise à jour" });
+  }
+});
+
 router.delete("/admin/users/:id", requireManager, async (req, res) => {
   const { id } = req.params;
   const auth = getAuth(req);
@@ -96,6 +137,7 @@ router.delete("/admin/users/:id", requireManager, async (req, res) => {
   try {
     const clerk = await clerkClient(req);
     await clerk.users.deleteUser(id);
+    await db.delete(hotelUsersTable).where(eq(hotelUsersTable.clerkUserId, id));
     res.status(204).end();
   } catch (err) {
     req.log.error({ err }, "Failed to delete user");
