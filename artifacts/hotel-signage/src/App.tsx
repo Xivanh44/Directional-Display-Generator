@@ -16,7 +16,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowLeft, ArrowRight, Minus, Upload, X, FileDown, GripVertical, Plus, ListPlus, Trash2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Minus, Upload, X, FileDown, GripVertical, Plus, ListPlus, Trash2, Image as ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import { useLogos } from "@/hooks/use-logos";
@@ -31,7 +31,22 @@ import {
   TEXT_OPTIONS,
   SignageText,
 } from "@/lib/pdf-generator";
+import { renderBannerToCanvas, downloadCanvasAsPng } from "@/lib/banner-canvas";
 import { PDFPreview } from "@/components/PDFPreview";
+
+const FONT_OPTIONS = [
+  { label: 'Arial (défaut)', value: 'Arial' },
+  { label: 'Georgia', value: 'Georgia' },
+  { label: 'Times New Roman', value: 'Times New Roman' },
+  { label: 'Impact', value: 'Impact' },
+  { label: 'Courier New', value: 'Courier New' },
+  { label: 'Trebuchet MS', value: 'Trebuchet MS' },
+  { label: 'Montserrat', value: 'Montserrat' },
+  { label: 'Playfair Display', value: 'Playfair Display' },
+  { label: 'Lato', value: 'Lato' },
+  { label: 'Cinzel', value: 'Cinzel' },
+  { label: 'Cormorant Garamond', value: 'Cormorant Garamond' },
+];
 
 interface QueueItem {
   id: string;
@@ -55,10 +70,13 @@ function Main() {
     format: 'A4',
     arrow: 'none',
     text: TEXT_OPTIONS[0],
-    selectedLogos: []
+    selectedLogos: [],
+    font: 'Arial',
+    customArrowDataUrl: null,
   });
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const arrowInputRef = useRef<HTMLInputElement>(null);
 
   const a4Items = queue.filter(q => q.item.format === 'A4');
   const a3Items = queue.filter(q => q.item.format === 'A3');
@@ -103,7 +121,10 @@ function Main() {
       Array.from({ length: q.quantity }, () => q.item)
     );
     try {
-      await generateBulkPDF(expanded, format, logos);
+      const bannerDataUrls = await Promise.all(
+        expanded.map((item) => renderBannerToCanvas(item).then((c) => c.toDataURL('image/png')))
+      );
+      await generateBulkPDF(expanded, format, logos, bannerDataUrls);
       toast({
         title: "Export réussi",
         description: `PDF ${format} — ${expanded.length} affichage(s) téléchargé.`,
@@ -152,7 +173,9 @@ function Main() {
 
   const handleExport = async () => {
     try {
-      await generatePDF(state, logos);
+      const canvas = await renderBannerToCanvas(state);
+      const bannerDataUrl = canvas.toDataURL('image/png');
+      await generatePDF(state, logos, bannerDataUrl);
       toast({
         title: "Export réussi",
         description: "Votre affiche a été téléchargée.",
@@ -168,7 +191,11 @@ function Main() {
 
   const handleExportAllVariants = async () => {
     try {
-      await generateAllVariantsPDF(state, logos);
+      const variants: ArrowType[] = ['left', 'none', 'right'];
+      const bannerDataUrls = await Promise.all(
+        variants.map((arrow) => renderBannerToCanvas({ ...state, arrow }).then((c) => c.toDataURL('image/png')))
+      );
+      await generateAllVariantsPDF(state, logos, bannerDataUrls);
       toast({
         title: "Export réussi",
         description: "PDF des 3 variantes (gauche, sans flèche, droite) téléchargé.",
@@ -180,6 +207,28 @@ function Main() {
         description: "Une erreur est survenue lors de la génération du PDF.",
       });
     }
+  };
+
+  const handleBannerExport = async () => {
+    try {
+      const canvas = await renderBannerToCanvas(state);
+      const slug = state.text.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || 'bandeau';
+      downloadCanvasAsPng(canvas, `bandeau-${state.format.toLowerCase()}-${state.arrow}-${slug}.png`);
+      toast({ title: "Bandeau exporté", description: "Image PNG téléchargée." });
+    } catch {
+      toast({ variant: "destructive", title: "Erreur", description: "Impossible d'exporter le bandeau." });
+    }
+  };
+
+  const handleArrowFile = (file: File) => {
+    if (!file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      if (e.target?.result) {
+        setState((prev) => ({ ...prev, customArrowDataUrl: e.target!.result as string }));
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   const toggleLogo = (id: string) => {
@@ -289,6 +338,42 @@ function Main() {
                 </Label>
               </div>
             </RadioGroup>
+
+            {/* Custom arrow image */}
+            <div className="pt-1">
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8 text-xs"
+                  onClick={() => arrowInputRef.current?.click()}
+                >
+                  <Upload className="w-3.5 h-3.5 mr-1.5" />
+                  {state.customArrowDataUrl ? 'Changer la flèche' : 'Flèche personnalisée…'}
+                </Button>
+                {state.customArrowDataUrl && (
+                  <>
+                    <img src={state.customArrowDataUrl} className="h-7 w-7 object-contain rounded border" alt="flèche" />
+                    <button
+                      type="button"
+                      onClick={() => setState({ ...state, customArrowDataUrl: null })}
+                      className="text-muted-foreground hover:text-destructive"
+                      title="Supprimer la flèche personnalisée"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </>
+                )}
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                ref={arrowInputRef}
+                onChange={(e) => { if (e.target.files?.[0]) handleArrowFile(e.target.files[0]); }}
+              />
+            </div>
           </div>
 
           {/* Texte */}
@@ -417,6 +502,26 @@ function Main() {
             })()}
           </div>
 
+          {/* Police */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">Police du bandeau</Label>
+            <Select
+              value={state.font || 'Arial'}
+              onValueChange={(v) => setState({ ...state, font: v })}
+            >
+              <SelectTrigger className="bg-white">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {FONT_OPTIONS.map((f) => (
+                  <SelectItem key={f.value} value={f.value}>
+                    <span style={{ fontFamily: f.value }}>{f.label}</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Logos */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
@@ -543,6 +648,15 @@ function Main() {
           >
             <FileDown className="w-3.5 h-3.5 mr-2" />
             Exporter les 3 variantes
+          </Button>
+          <Button
+            onClick={handleBannerExport}
+            variant="outline"
+            size="sm"
+            className="w-full text-xs h-9"
+          >
+            <ImageIcon className="w-3.5 h-3.5 mr-2" />
+            Exporter le bandeau (PNG)
           </Button>
 
           {(a4Pages > 0 || a3Pages > 0) && (

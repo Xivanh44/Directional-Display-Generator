@@ -66,7 +66,16 @@ export function PDFPreview({ state, allLogos }: PDFPreviewProps) {
                   aspectRatio: `${ARROW_WIDTH_RATIO}`,
                 }}
               >
-                <ChevronSvg direction="left" />
+                {state.customArrowDataUrl ? (
+                  <img
+                    src={state.customArrowDataUrl}
+                    className="w-full h-full object-contain"
+                    style={{ transform: 'scaleX(-1)' }}
+                    alt=""
+                  />
+                ) : (
+                  <ChevronSvg direction="left" />
+                )}
               </div>
             )}
 
@@ -79,7 +88,15 @@ export function PDFPreview({ state, allLogos }: PDFPreviewProps) {
                   aspectRatio: `${ARROW_WIDTH_RATIO}`,
                 }}
               >
-                <ChevronSvg direction="right" />
+                {state.customArrowDataUrl ? (
+                  <img
+                    src={state.customArrowDataUrl}
+                    className="w-full h-full object-contain"
+                    alt=""
+                  />
+                ) : (
+                  <ChevronSvg direction="right" />
+                )}
               </div>
             )}
 
@@ -90,7 +107,7 @@ export function PDFPreview({ state, allLogos }: PDFPreviewProps) {
                 paddingRight: `${sidePadPct}%`,
               }}
             >
-              <AutoFitText text={text} />
+              <AutoFitText text={text} font={state.font} />
             </div>
           </div>
 
@@ -157,10 +174,11 @@ export function PDFPreview({ state, allLogos }: PDFPreviewProps) {
   );
 }
 
-function AutoFitText({ text }: { text: string }) {
+function AutoFitText({ text, font }: { text: string; font?: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const measureRef = useRef<HTMLSpanElement>(null);
   const [fontSize, setFontSize] = useState(16);
+  const fontFamily = font || 'Arial, sans-serif';
 
   useLayoutEffect(() => {
     const container = containerRef.current;
@@ -194,7 +212,7 @@ function AutoFitText({ text }: { text: string }) {
     const ro = new ResizeObserver(fit);
     ro.observe(container);
     return () => ro.disconnect();
-  }, [text]);
+  }, [text, fontFamily]);
 
   return (
     <div
@@ -206,7 +224,7 @@ function AutoFitText({ text }: { text: string }) {
         style={{
           fontSize: `${fontSize}px`,
           whiteSpace: 'nowrap',
-          fontFamily: 'Arial, sans-serif',
+          fontFamily,
           fontWeight: 'normal',
           color: '#000',
           lineHeight: 1.25,

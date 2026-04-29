@@ -8,9 +8,11 @@ export interface SignageState {
   arrow: ArrowType;
   text: string;
   selectedLogos: string[];
+  font?: string;
+  customArrowDataUrl?: string | null;
 }
 
-const FORMAT_DIMS = {
+export const FORMAT_DIMS = {
   A4: { w: 297, h: 210 },
   A3: { w: 420, h: 297 }
 };
@@ -58,90 +60,60 @@ function renderPage(
   state: SignageState,
   allLogos: Record<string, string>,
   imageMeta: Map<string, ImageMeta>,
+  bannerImageDataUrl?: string,
 ) {
   const { format, arrow, text, selectedLogos } = state;
   const { w, h } = FORMAT_DIMS[format];
   const bannerH = h * BANNER_HEIGHT_PCT;
 
-  // Banner Background
-  doc.setFillColor(THEME.beigeRGB[0], THEME.beigeRGB[1], THEME.beigeRGB[2]);
-  doc.rect(0, 0, w, bannerH, 'F');
+  if (bannerImageDataUrl) {
+    // Embed the pre-rendered banner canvas (handles custom font + custom arrow).
+    doc.addImage(bannerImageDataUrl, 'PNG', 0, 0, w, bannerH);
+  } else {
+    // Fallback: draw banner with primitives (helvetica + built-in chevron).
+    doc.setFillColor(THEME.beigeRGB[0], THEME.beigeRGB[1], THEME.beigeRGB[2]);
+    doc.rect(0, 0, w, bannerH, 'F');
 
-  // Arrow — chevron in the style of Unicode U+276F (❯): two thick diagonal
-  // strokes meeting at a sharp mitered vertex, square ends, no tail.
-  if (arrow !== 'none') {
-    const chevronH = bannerH * ARROW_HEIGHT_PCT;
-    const chevronW = chevronH * ARROW_WIDTH_RATIO;
-    const stroke = chevronH * ARROW_STROKE_RATIO;
-    const margin = w * ARROW_MARGIN_PCT;
-    const yTop = (bannerH - chevronH) / 2;
-
-    doc.setDrawColor(0, 0, 0);
-    doc.setLineWidth(stroke);
-    doc.setLineCap('butt');
-    doc.setLineJoin('miter');
-    doc.setLineMiterLimit(10);
-
-    if (arrow === 'right') {
-      // Two segments meeting at the right-middle tip.
-      const xLeft = w - margin - chevronW;
-      doc.lines(
-        [[chevronW, chevronH / 2], [-chevronW, chevronH / 2]],
-        xLeft,
-        yTop,
-        [1, 1],
-        'S'
-      );
-    } else {
-      // Two segments meeting at the left-middle tip.
-      const xLeft = margin;
-      doc.lines(
-        [[-chevronW, chevronH / 2], [chevronW, chevronH / 2]],
-        xLeft + chevronW,
-        yTop,
-        [1, 1],
-        'S'
-      );
-    }
-  }
-
-  // Text — Arial, normal weight, black (Helvetica is jsPDF's standard
-  // PDF substitute for Arial; PDF readers map it to Arial on display).
-  if (text.trim()) {
-    doc.setFont('helvetica', 'normal');
-
-    // Available width: bannerWidth minus reserved zones for the arrow on each
-    // side (so centered text never collides with the chevron).
-    const arrowSpace =
-      bannerH * ARROW_HEIGHT_PCT * ARROW_WIDTH_RATIO + w * ARROW_MARGIN_PCT;
-    const safetyPad = w * 0.02;
-    const maxTextW =
-      arrow === 'none'
-        ? w * 0.9
-        : w - 2 * arrowSpace - safetyPad * 2;
-    // Available height: 70% of banner so descenders (j, g, p…) are never clipped.
-    const maxTextH = bannerH * 0.70;
-
-    // Binary search the largest font size (in pt) that fits both width & height.
-    // jsPDF uses pt internally; 1pt = 0.3528 mm.
-    let lo = 4;
-    let hi = (maxTextH / 0.3528) * 1.05;
-    let best = lo;
-    for (let i = 0; i < 24; i++) {
-      const mid = (lo + hi) / 2;
-      doc.setFontSize(mid);
-      const tw = doc.getTextWidth(text);
-      const th = mid * 0.3528; // approximate cap height in mm
-      if (tw <= maxTextW && th <= maxTextH) {
-        best = mid;
-        lo = mid;
+    if (arrow !== 'none') {
+      const chevronH = bannerH * ARROW_HEIGHT_PCT;
+      const chevronW = chevronH * ARROW_WIDTH_RATIO;
+      const stroke = chevronH * ARROW_STROKE_RATIO;
+      const margin = w * ARROW_MARGIN_PCT;
+      const yTop = (bannerH - chevronH) / 2;
+      doc.setDrawColor(0, 0, 0);
+      doc.setLineWidth(stroke);
+      doc.setLineCap('butt');
+      doc.setLineJoin('miter');
+      doc.setLineMiterLimit(10);
+      if (arrow === 'right') {
+        const xLeft = w - margin - chevronW;
+        doc.lines([[chevronW, chevronH / 2], [-chevronW, chevronH / 2]], xLeft, yTop, [1, 1], 'S');
       } else {
-        hi = mid;
+        const xLeft = margin;
+        doc.lines([[-chevronW, chevronH / 2], [chevronW, chevronH / 2]], xLeft + chevronW, yTop, [1, 1], 'S');
       }
     }
-    doc.setFontSize(best);
-    doc.setTextColor(0, 0, 0);
-    doc.text(text, w / 2, bannerH / 2, { align: 'center', baseline: 'middle' });
+
+    if (text.trim()) {
+      doc.setFont('helvetica', 'normal');
+      const arrowSpace = bannerH * ARROW_HEIGHT_PCT * ARROW_WIDTH_RATIO + w * ARROW_MARGIN_PCT;
+      const safetyPad = w * 0.02;
+      const maxTextW = arrow === 'none' ? w * 0.9 : w - 2 * arrowSpace - safetyPad * 2;
+      const maxTextH = bannerH * 0.70;
+      let lo = 4;
+      let hi = (maxTextH / 0.3528) * 1.05;
+      let best = lo;
+      for (let i = 0; i < 24; i++) {
+        const mid = (lo + hi) / 2;
+        doc.setFontSize(mid);
+        const tw = doc.getTextWidth(text);
+        const th = mid * 0.3528;
+        if (tw <= maxTextW && th <= maxTextH) { best = mid; lo = mid; } else { hi = mid; }
+      }
+      doc.setFontSize(best);
+      doc.setTextColor(0, 0, 0);
+      doc.text(text, w / 2, bannerH / 2, { align: 'center', baseline: 'middle' });
+    }
   }
 
   // Logos
@@ -239,14 +211,18 @@ function makeDoc(format: PaperFormat): jsPDF {
   });
 }
 
-export async function generatePDF(state: SignageState, allLogos: Record<string, string>) {
+export async function generatePDF(
+  state: SignageState,
+  allLogos: Record<string, string>,
+  bannerImageDataUrl?: string,
+) {
   const dataUrls = state.selectedLogos
     .map((id) => allLogos[id])
     .filter((u): u is string => Boolean(u));
   const imageMeta = await preloadImageMeta(dataUrls);
 
   const doc = makeDoc(state.format);
-  renderPage(doc, state, allLogos, imageMeta);
+  renderPage(doc, state, allLogos, imageMeta, bannerImageDataUrl);
 
   const slug = buildSlug(state.text);
   doc.save(`affichage-${state.format.toLowerCase()}-${state.arrow}-${slug}.pdf`);
@@ -255,6 +231,7 @@ export async function generatePDF(state: SignageState, allLogos: Record<string, 
 export async function generateAllVariantsPDF(
   state: SignageState,
   allLogos: Record<string, string>,
+  bannerImageDataUrls?: string[],
 ) {
   const dataUrls = state.selectedLogos
     .map((id) => allLogos[id])
@@ -265,10 +242,8 @@ export async function generateAllVariantsPDF(
   const doc = makeDoc(state.format);
 
   variants.forEach((arrow, idx) => {
-    if (idx > 0) {
-      doc.addPage(state.format.toLowerCase(), 'landscape');
-    }
-    renderPage(doc, { ...state, arrow }, allLogos, imageMeta);
+    if (idx > 0) doc.addPage(state.format.toLowerCase(), 'landscape');
+    renderPage(doc, { ...state, arrow }, allLogos, imageMeta, bannerImageDataUrls?.[idx]);
   });
 
   const slug = buildSlug(state.text);
@@ -279,6 +254,7 @@ export async function generateBulkPDF(
   items: SignageState[],
   format: PaperFormat,
   allLogos: Record<string, string>,
+  bannerImageDataUrls?: string[],
 ) {
   if (items.length === 0) return;
 
@@ -294,10 +270,8 @@ export async function generateBulkPDF(
   const doc = makeDoc(format);
 
   items.forEach((item, idx) => {
-    if (idx > 0) {
-      doc.addPage(format.toLowerCase(), 'landscape');
-    }
-    renderPage(doc, { ...item, format }, allLogos, imageMeta);
+    if (idx > 0) doc.addPage(format.toLowerCase(), 'landscape');
+    renderPage(doc, { ...item, format }, allLogos, imageMeta, bannerImageDataUrls?.[idx]);
   });
 
   doc.save(`compilation-${format.toLowerCase()}-${items.length}-affichages.pdf`);
