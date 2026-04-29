@@ -21,11 +21,11 @@ import { cn } from "@/lib/utils";
 
 import {
   ClerkProvider,
-  SignUp,
   useUser,
   useClerk,
 } from '@clerk/react';
 import { SignInPage } from '@/pages/SignInPage';
+import { UserManagementDialog } from '@/components/UserManagementDialog';
 import { publishableKeyFromHost } from '@clerk/react/internal';
 import { shadcn } from '@clerk/themes';
 import { Switch, Route, useLocation, Router as WouterRouter, Redirect } from 'wouter';
@@ -965,13 +965,16 @@ function UserWidget({ isManager }: { isManager: boolean }) {
   const [, setLocation] = useLocation();
   if (!user) return null;
   return (
-    <div className="flex flex-col items-end gap-1 shrink-0">
-      <span className={cn(
-        "text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded",
-        isManager ? "bg-amber-100 text-amber-800" : "bg-muted text-muted-foreground"
-      )}>
-        {isManager ? 'Manageur' : 'Utilisateur'}
-      </span>
+    <div className="flex flex-col items-end gap-1.5 shrink-0">
+      <div className="flex items-center gap-1.5">
+        {isManager && <UserManagementDialog />}
+        <span className={cn(
+          "text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded",
+          isManager ? "bg-amber-100 text-amber-800" : "bg-muted text-muted-foreground"
+        )}>
+          {isManager ? 'Manageur' : 'Utilisateur'}
+        </span>
+      </div>
       <button
         onClick={() => signOut(() => setLocation('/'))}
         className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
@@ -980,14 +983,6 @@ function UserWidget({ isManager }: { isManager: boolean }) {
         <LogOut className="w-3 h-3" />
         Déconnexion
       </button>
-    </div>
-  );
-}
-
-function SignUpPage() {
-  return (
-    <div className="min-h-[100dvh] flex items-center justify-center bg-[#EAE3D2] px-4">
-      <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} />
     </div>
   );
 }
@@ -1003,14 +998,9 @@ function LandingPage() {
         </h1>
         <p className="text-zinc-600 text-sm tracking-wide">Générateur d'affiches directionnelles</p>
       </div>
-      <div className="flex gap-3">
-        <Button onClick={() => setLocation('/sign-in')} size="lg" className="px-8">
-          Se connecter
-        </Button>
-        <Button onClick={() => setLocation('/sign-up')} size="lg" variant="outline" className="px-8 bg-white/60">
-          Créer un compte
-        </Button>
-      </div>
+      <Button onClick={() => setLocation('/sign-in')} size="lg" className="px-8">
+        Se connecter
+      </Button>
     </div>
   );
 }
@@ -1045,18 +1035,12 @@ function ClerkProviderWithRoutes() {
       proxyUrl={clerkProxyUrl}
       appearance={clerkAppearance}
       signInUrl={`${basePath}/sign-in`}
-      signUpUrl={`${basePath}/sign-up`}
-      localization={{
-        signIn: { start: { title: 'Connexion', subtitle: 'Accédez à votre espace' } },
-        signUp: { start: { title: 'Créer un compte', subtitle: 'Rejoignez votre équipe hôtelière' } },
-      }}
       routerPush={(to) => setLocation(stripBase(to))}
       routerReplace={(to) => setLocation(stripBase(to), { replace: true })}
     >
       <Switch>
         <Route path="/" component={HomeRoute} />
         <Route path="/sign-in/*?" component={SignInPage} />
-        <Route path="/sign-up/*?" component={SignUpPage} />
         <Route path="/app" component={AppShell} />
         <Route><Redirect to="/" /></Route>
       </Switch>

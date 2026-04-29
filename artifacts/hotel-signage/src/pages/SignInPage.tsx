@@ -119,15 +119,8 @@ export function SignInPage() {
 
           {/* Footer */}
           <div className="px-8 pb-6 text-center">
-            <p className="text-sm text-muted-foreground">
-              Pas encore de compte ?{' '}
-              <button
-                type="button"
-                onClick={() => setLocation('/sign-up')}
-                className="text-foreground underline underline-offset-2 hover:opacity-70"
-              >
-                Créer un compte
-              </button>
+            <p className="text-xs text-muted-foreground">
+              Les accès sont créés par le manageur.
             </p>
           </div>
         </div>
