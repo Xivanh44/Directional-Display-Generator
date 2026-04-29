@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/hooks/use-toast";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -16,8 +16,19 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowLeft, ArrowRight, Minus, Upload, X, FileDown, GripVertical, Plus, ListPlus, Trash2, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, ArrowRight, Minus, Upload, X, FileDown, GripVertical, Plus, ListPlus, Trash2, Image as ImageIcon, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+import {
+  ClerkProvider,
+  SignIn,
+  SignUp,
+  useUser,
+  useClerk,
+} from '@clerk/react';
+import { publishableKeyFromHost } from '@clerk/react/internal';
+import { shadcn } from '@clerk/themes';
+import { Switch, Route, useLocation, Router as WouterRouter, Redirect } from 'wouter';
 
 import { useLogos } from "@/hooks/use-logos";
 import { useCustomTexts } from "@/hooks/use-custom-texts";
@@ -62,7 +73,72 @@ const ARROW_LABEL: Record<ArrowType, string> = {
 
 const queryClient = new QueryClient();
 
-function Main() {
+// ── Clerk setup ──────────────────────────────────────────────────────────────
+const clerkPubKey = publishableKeyFromHost(
+  window.location.hostname,
+  import.meta.env.VITE_CLERK_PUBLISHABLE_KEY,
+);
+const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL as string | undefined;
+const basePath = (import.meta.env.BASE_URL as string).replace(/\/$/, '');
+
+function stripBase(path: string): string {
+  return basePath && path.startsWith(basePath)
+    ? path.slice(basePath.length) || '/'
+    : path;
+}
+
+const clerkAppearance = {
+  theme: shadcn,
+  cssLayerName: 'clerk',
+  options: {
+    logoPlacement: 'inside' as const,
+    logoLinkUrl: basePath || '/',
+    logoImageUrl: `${window.location.origin}${basePath}/logo.svg`,
+  },
+  variables: {
+    colorPrimary: '#18181b',
+    colorForeground: '#18181b',
+    colorMutedForeground: '#71717a',
+    colorDanger: '#ef4444',
+    colorBackground: '#ffffff',
+    colorInput: '#ffffff',
+    colorInputForeground: '#18181b',
+    colorNeutral: '#e4e4e7',
+    fontFamily: 'Georgia, serif',
+    borderRadius: '0.5rem',
+  },
+  elements: {
+    rootBox: 'w-full flex justify-center',
+    cardBox: 'bg-white rounded-xl w-[440px] max-w-full overflow-hidden shadow-xl ring-1 ring-black/5',
+    card: '!shadow-none !border-0 !bg-transparent !rounded-none',
+    footer: '!shadow-none !border-0 !bg-transparent !rounded-none',
+    headerTitle: 'text-[#18181b] font-normal tracking-wide',
+    headerSubtitle: 'text-[#71717a]',
+    socialButtonsBlockButtonText: 'text-[#18181b]',
+    formFieldLabel: 'text-[#18181b]',
+    footerActionLink: 'text-[#18181b] underline-offset-2',
+    footerActionText: 'text-[#71717a]',
+    dividerText: 'text-[#71717a]',
+    identityPreviewEditButton: 'text-[#18181b]',
+    formFieldSuccessText: 'text-green-700',
+    alertText: 'text-[#18181b]',
+    logoBox: 'mb-1',
+    logoImage: 'rounded-md',
+    socialButtonsBlockButton: 'border border-[#e4e4e7] bg-white hover:bg-[#fafafa]',
+    formButtonPrimary: 'bg-[#18181b] hover:bg-[#27272a] text-white',
+    formFieldInput: 'bg-white border-[#e4e4e7] text-[#18181b]',
+    footerAction: 'bg-[#fafafa]',
+    dividerLine: 'bg-[#e4e4e7]',
+    alert: 'bg-[#fef2f2] border-[#fecaca]',
+    otpCodeFieldInput: 'border-[#e4e4e7]',
+    formFieldRow: '',
+    main: '',
+  },
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+function Main({ isManager }: { isManager: boolean }) {
   const { toast } = useToast();
   const { logos, addLogos, removeLogo } = useLogos();
   const { customTexts, addCustomText, removeCustomText } = useCustomTexts();
@@ -266,8 +342,13 @@ function Main() {
       {/* Controls Panel */}
       <div className="w-full md:w-[400px] border-r bg-card flex flex-col shrink-0 h-[100dvh] overflow-y-auto">
         <div className="p-6 border-b">
-          <h1 className="text-xl font-semibold tracking-tight">Affichages Hôtel</h1>
-          <p className="text-sm text-muted-foreground mt-1">Générateur d'affiches directionnelles</p>
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <h1 className="text-xl font-semibold tracking-tight">Affichages Hôtel</h1>
+              <p className="text-sm text-muted-foreground mt-1">Générateur d'affiches directionnelles</p>
+            </div>
+            <UserWidget isManager={isManager} />
+          </div>
         </div>
 
         <div className="p-6 space-y-8 flex-1">
@@ -340,41 +421,43 @@ function Main() {
               </div>
             </RadioGroup>
 
-            {/* Custom arrow image */}
-            <div className="pt-1">
-              <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="h-8 text-xs"
-                  onClick={() => arrowInputRef.current?.click()}
-                >
-                  <Upload className="w-3.5 h-3.5 mr-1.5" />
-                  {state.customArrowDataUrl ? 'Changer la flèche' : 'Flèche personnalisée…'}
-                </Button>
-                {state.customArrowDataUrl && (
-                  <>
-                    <img src={state.customArrowDataUrl} className="h-7 w-7 object-contain rounded border" alt="flèche" />
-                    <button
-                      type="button"
-                      onClick={() => setState({ ...state, customArrowDataUrl: null })}
-                      className="text-muted-foreground hover:text-destructive"
-                      title="Supprimer la flèche personnalisée"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </>
-                )}
+            {/* Custom arrow image — manager only */}
+            {isManager && (
+              <div className="pt-1">
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-8 text-xs"
+                    onClick={() => arrowInputRef.current?.click()}
+                  >
+                    <Upload className="w-3.5 h-3.5 mr-1.5" />
+                    {state.customArrowDataUrl ? 'Changer la flèche' : 'Flèche personnalisée…'}
+                  </Button>
+                  {state.customArrowDataUrl && (
+                    <>
+                      <img src={state.customArrowDataUrl} className="h-7 w-7 object-contain rounded border" alt="flèche" />
+                      <button
+                        type="button"
+                        onClick={() => setState({ ...state, customArrowDataUrl: null })}
+                        className="text-muted-foreground hover:text-destructive"
+                        title="Supprimer la flèche personnalisée"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </>
+                  )}
+                </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  ref={arrowInputRef}
+                  onChange={(e) => { if (e.target.files?.[0]) handleArrowFile(e.target.files[0]); }}
+                />
               </div>
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                ref={arrowInputRef}
-                onChange={(e) => { if (e.target.files?.[0]) handleArrowFile(e.target.files[0]); }}
-              />
-            </div>
+            )}
 
             {/* Arrow size slider — only shown when arrow is active */}
             {state.arrow !== 'none' && (
@@ -531,25 +614,27 @@ function Main() {
             })()}
           </div>
 
-          {/* Police */}
-          <div className="space-y-3">
-            <Label className="text-sm font-medium">Police du bandeau</Label>
-            <Select
-              value={state.font || 'Arial'}
-              onValueChange={(v) => setState({ ...state, font: v })}
-            >
-              <SelectTrigger className="bg-white">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {FONT_OPTIONS.map((f) => (
-                  <SelectItem key={f.value} value={f.value}>
-                    <span style={{ fontFamily: f.value }}>{f.label}</span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {/* Police — manager only */}
+          {isManager && (
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Police du bandeau</Label>
+              <Select
+                value={state.font || 'Arial'}
+                onValueChange={(v) => setState({ ...state, font: v })}
+              >
+                <SelectTrigger className="bg-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {FONT_OPTIONS.map((f) => (
+                    <SelectItem key={f.value} value={f.value}>
+                      <span style={{ fontFamily: f.value }}>{f.label}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* Logos */}
           <div className="space-y-3">
@@ -678,15 +763,17 @@ function Main() {
             <FileDown className="w-3.5 h-3.5 mr-2" />
             Exporter les 3 variantes
           </Button>
-          <Button
-            onClick={handleBannerExport}
-            variant="outline"
-            size="sm"
-            className="w-full text-xs h-9"
-          >
-            <ImageIcon className="w-3.5 h-3.5 mr-2" />
-            Exporter le bandeau (PNG)
-          </Button>
+          {isManager && (
+            <Button
+              onClick={handleBannerExport}
+              variant="outline"
+              size="sm"
+              className="w-full text-xs h-9"
+            >
+              <ImageIcon className="w-3.5 h-3.5 mr-2" />
+              Exporter le bandeau (PNG)
+            </Button>
+          )}
 
           {(a4Pages > 0 || a3Pages > 0) && (
             <div className="pt-2 mt-2 border-t space-y-2">
@@ -870,14 +957,126 @@ function SelectedLogosReorder({
   );
 }
 
-function App() {
+// ── Auth-aware helper components ─────────────────────────────────────────────
+
+function UserWidget({ isManager }: { isManager: boolean }) {
+  const { user } = useUser();
+  const { signOut } = useClerk();
+  const [, setLocation] = useLocation();
+  if (!user) return null;
+  return (
+    <div className="flex flex-col items-end gap-1 shrink-0">
+      <span className={cn(
+        "text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded",
+        isManager ? "bg-amber-100 text-amber-800" : "bg-muted text-muted-foreground"
+      )}>
+        {isManager ? 'Manageur' : 'Utilisateur'}
+      </span>
+      <button
+        onClick={() => signOut(() => setLocation('/'))}
+        className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+        title="Se déconnecter"
+      >
+        <LogOut className="w-3 h-3" />
+        Déconnexion
+      </button>
+    </div>
+  );
+}
+
+function SignInPage() {
+  return (
+    <div className="min-h-[100dvh] flex items-center justify-center bg-[#EAE3D2] px-4">
+      <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} />
+    </div>
+  );
+}
+
+function SignUpPage() {
+  return (
+    <div className="min-h-[100dvh] flex items-center justify-center bg-[#EAE3D2] px-4">
+      <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} />
+    </div>
+  );
+}
+
+function LandingPage() {
+  const [, setLocation] = useLocation();
+  return (
+    <div className="min-h-[100dvh] flex flex-col items-center justify-center bg-[#EAE3D2] px-4 gap-8">
+      <div className="text-center space-y-3">
+        <img src={`${basePath}/logo.svg`} alt="Hôtel" className="h-16 mx-auto" />
+        <h1 className="text-3xl font-light tracking-widest text-zinc-900 uppercase" style={{ fontFamily: 'Georgia, serif' }}>
+          Affichages Hôtel
+        </h1>
+        <p className="text-zinc-600 text-sm tracking-wide">Générateur d'affiches directionnelles</p>
+      </div>
+      <div className="flex gap-3">
+        <Button onClick={() => setLocation('/sign-in')} size="lg" className="px-8">
+          Se connecter
+        </Button>
+        <Button onClick={() => setLocation('/sign-up')} size="lg" variant="outline" className="px-8 bg-white/60">
+          Créer un compte
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function AppShell() {
+  const { user, isLoaded } = useUser();
+  if (!isLoaded) return null;
+  const isManager = user?.publicMetadata?.role === 'manager';
+  if (!user) return <Redirect to="/" />;
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Main />
+        <Main isManager={isManager} />
         <Toaster />
       </TooltipProvider>
     </QueryClientProvider>
+  );
+}
+
+function HomeRoute() {
+  const { user, isLoaded } = useUser();
+  if (!isLoaded) return null;
+  if (user) return <Redirect to="/app" />;
+  return <LandingPage />;
+}
+
+function ClerkProviderWithRoutes() {
+  const [, setLocation] = useLocation();
+  return (
+    <ClerkProvider
+      publishableKey={clerkPubKey!}
+      proxyUrl={clerkProxyUrl}
+      appearance={clerkAppearance}
+      signInUrl={`${basePath}/sign-in`}
+      signUpUrl={`${basePath}/sign-up`}
+      localization={{
+        signIn: { start: { title: 'Connexion', subtitle: 'Accédez à votre espace' } },
+        signUp: { start: { title: 'Créer un compte', subtitle: 'Rejoignez votre équipe hôtelière' } },
+      }}
+      routerPush={(to) => setLocation(stripBase(to))}
+      routerReplace={(to) => setLocation(stripBase(to), { replace: true })}
+    >
+      <Switch>
+        <Route path="/" component={HomeRoute} />
+        <Route path="/sign-in/*?" component={SignInPage} />
+        <Route path="/sign-up/*?" component={SignUpPage} />
+        <Route path="/app" component={AppShell} />
+        <Route><Redirect to="/" /></Route>
+      </Switch>
+    </ClerkProvider>
+  );
+}
+
+function App() {
+  return (
+    <WouterRouter base={basePath}>
+      <ClerkProviderWithRoutes />
+    </WouterRouter>
   );
 }
 

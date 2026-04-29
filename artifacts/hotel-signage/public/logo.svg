@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" fill="none">
+  <rect width="200" height="60" fill="#EAE3D2" rx="4"/>
+  <text x="100" y="38" font-family="Georgia, serif" font-size="22" font-weight="normal" fill="#1a1a1a" text-anchor="middle" letter-spacing="3">HÔTEL</text>
+  <line x1="20" y1="46" x2="180" y2="46" stroke="#8B7355" stroke-width="0.8"/>
+</svg>
