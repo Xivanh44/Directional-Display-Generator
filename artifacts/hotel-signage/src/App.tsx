@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/hooks/use-toast";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,22 +13,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowLeft, ArrowRight, Minus, Upload, X, FileDown, GripVertical, Plus, ListPlus, Trash2, Image as ImageIcon, LogOut } from "lucide-react";
-import { cn } from "@/lib/utils";
-
 import {
-  ClerkProvider,
-  useUser,
-  useClerk,
-} from '@clerk/react';
-import { SignInPage } from '@/pages/SignInPage';
-import { UserManagementDialog } from '@/components/UserManagementDialog';
-import { publishableKeyFromHost } from '@clerk/react/internal';
-import { shadcn } from '@clerk/themes';
-import { Switch, Route, useLocation, Router as WouterRouter, Redirect } from 'wouter';
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { ArrowLeft, ArrowRight, Minus, Upload, X, FileDown, GripVertical, Plus, ListPlus, Trash2, Image as ImageIcon, Settings2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 import { useLogos } from "@/hooks/use-logos";
 import { useCustomTexts } from "@/hooks/use-custom-texts";
@@ -73,75 +68,116 @@ const ARROW_LABEL: Record<ArrowType, string> = {
 
 const queryClient = new QueryClient();
 
-// ── Clerk setup ──────────────────────────────────────────────────────────────
-const clerkPubKey = publishableKeyFromHost(
-  window.location.hostname,
-  import.meta.env.VITE_CLERK_PUBLISHABLE_KEY,
-);
-const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL as string | undefined;
 const basePath = (import.meta.env.BASE_URL as string).replace(/\/$/, '');
 
-function stripBase(path: string): string {
-  return basePath && path.startsWith(basePath)
-    ? path.slice(basePath.length) || '/'
-    : path;
+// ── Manager PIN dialog ────────────────────────────────────────────────────────
+const MANAGER_PIN = '1234';
+
+function ManagerPinDialog({
+  open,
+  onClose,
+  onSuccess,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const [pin, setPin] = useState('');
+  const [error, setError] = useState('');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (pin === MANAGER_PIN) {
+      setPin('');
+      setError('');
+      onSuccess();
+    } else {
+      setError('Code incorrect');
+      setPin('');
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => { if (!o) { setPin(''); setError(''); onClose(); } }}>
+      <DialogContent className="sm:max-w-xs">
+        <DialogHeader>
+          <DialogTitle className="text-base font-semibold">Mode Manager</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4 pt-1">
+          <div className="space-y-1.5">
+            <Label htmlFor="pin" className="text-sm">Code d'accès</Label>
+            <Input
+              id="pin"
+              type="password"
+              value={pin}
+              onChange={(e) => { setPin(e.target.value); setError(''); }}
+              placeholder="••••"
+              autoFocus
+              autoComplete="off"
+              className="text-center tracking-widest text-lg"
+            />
+            {error && <p className="text-xs text-destructive">{error}</p>}
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" size="sm" onClick={() => { setPin(''); setError(''); onClose(); }}>
+              Annuler
+            </Button>
+            <Button type="submit" size="sm" disabled={pin.length === 0}>
+              Valider
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
-const clerkAppearance = {
-  theme: shadcn,
-  cssLayerName: 'clerk',
-  options: {
-    logoPlacement: 'inside' as const,
-    logoLinkUrl: basePath || '/',
-    logoImageUrl: `${window.location.origin}${basePath}/logo.svg`,
-  },
-  variables: {
-    colorPrimary: '#18181b',
-    colorForeground: '#18181b',
-    colorMutedForeground: '#71717a',
-    colorDanger: '#ef4444',
-    colorBackground: '#ffffff',
-    colorInput: '#ffffff',
-    colorInputForeground: '#18181b',
-    colorNeutral: '#e4e4e7',
-    fontFamily: 'Georgia, serif',
-    borderRadius: '0.5rem',
-  },
-  elements: {
-    rootBox: 'w-full flex justify-center',
-    cardBox: 'bg-white rounded-xl w-[440px] max-w-full overflow-hidden shadow-xl ring-1 ring-black/5',
-    card: '!shadow-none !border-0 !bg-transparent !rounded-none',
-    footer: '!shadow-none !border-0 !bg-transparent !rounded-none',
-    headerTitle: 'text-[#18181b] font-normal tracking-wide',
-    headerSubtitle: 'text-[#71717a]',
-    socialButtonsBlockButtonText: 'text-[#18181b]',
-    formFieldLabel: 'text-[#18181b]',
-    footerActionLink: 'text-[#18181b] underline-offset-2',
-    footerActionText: 'text-[#71717a]',
-    dividerText: 'text-[#71717a]',
-    identityPreviewEditButton: 'text-[#18181b]',
-    formFieldSuccessText: 'text-green-700',
-    alertText: 'text-[#18181b]',
-    logoBox: 'mb-1',
-    logoImage: 'rounded-md',
-    socialButtonsBlockButton: 'border border-[#e4e4e7] bg-white hover:bg-[#fafafa]',
-    formButtonPrimary: 'bg-[#18181b] hover:bg-[#27272a] text-white',
-    formFieldInput: 'bg-white border-[#e4e4e7] text-[#18181b]',
-    footerAction: 'bg-[#fafafa]',
-    dividerLine: 'bg-[#e4e4e7]',
-    alert: 'bg-[#fef2f2] border-[#fecaca]',
-    otpCodeFieldInput: 'border-[#e4e4e7]',
-    formFieldRow: '',
-    main: '',
-  },
-};
+// ── Manager toggle widget ─────────────────────────────────────────────────────
+function ManagerToggle({
+  isManager,
+  onRequestManager,
+  onExitManager,
+}: {
+  isManager: boolean;
+  onRequestManager: () => void;
+  onExitManager: () => void;
+}) {
+  if (isManager) {
+    return (
+      <div className="flex flex-col items-end gap-1">
+        <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">
+          Manageur
+        </span>
+        <button
+          onClick={onExitManager}
+          className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+        >
+          Quitter ce mode
+        </button>
+      </div>
+    );
+  }
+  return (
+    <button
+      onClick={onRequestManager}
+      title="Mode Manager"
+      className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded hover:bg-accent"
+    >
+      <Settings2 className="w-3.5 h-3.5" />
+      Manager
+    </button>
+  );
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-function Main({ isManager }: { isManager: boolean }) {
+function Main() {
   const { toast } = useToast();
   const { logos, addLogos, removeLogo } = useLogos();
   const { customTexts, addCustomText, removeCustomText } = useCustomTexts();
+  const [isManager, setIsManager] = useState(false);
+  const [pinDialogOpen, setPinDialogOpen] = useState(false);
+
   const [state, setState] = useState<SignageState>({
     format: 'A4',
     arrow: 'none',
@@ -337,722 +373,603 @@ function Main({ isManager }: { isManager: boolean }) {
   };
 
   return (
-    <div className="min-h-[100dvh] flex flex-col md:flex-row bg-background">
-      
-      {/* Controls Panel */}
-      <div className="w-full md:w-[400px] border-r bg-card flex flex-col shrink-0 h-[100dvh] overflow-y-auto">
-        <div className="p-6 border-b">
-          <div className="flex items-start justify-between gap-2">
-            <div>
-              <h1 className="text-xl font-semibold tracking-tight">Affichages Hôtel</h1>
-              <p className="text-sm text-muted-foreground mt-1">Générateur d'affiches directionnelles</p>
+    <>
+      <ManagerPinDialog
+        open={pinDialogOpen}
+        onClose={() => setPinDialogOpen(false)}
+        onSuccess={() => {
+          setIsManager(true);
+          setPinDialogOpen(false);
+          toast({ title: "Mode Manager activé" });
+        }}
+      />
+
+      <div className="min-h-[100dvh] flex flex-col md:flex-row bg-background">
+        {/* Controls Panel */}
+        <div className="w-full md:w-[400px] border-r bg-card flex flex-col shrink-0 h-[100dvh] overflow-y-auto">
+          <div className="p-6 border-b">
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <h1 className="text-xl font-semibold tracking-tight">Affichages Hôtel</h1>
+                <p className="text-sm text-muted-foreground mt-1">Générateur d'affiches directionnelles</p>
+              </div>
+              <ManagerToggle
+                isManager={isManager}
+                onRequestManager={() => setPinDialogOpen(true)}
+                onExitManager={() => {
+                  setIsManager(false);
+                  toast({ title: "Mode Manager désactivé" });
+                }}
+              />
             </div>
-            <UserWidget isManager={isManager} />
-          </div>
-        </div>
-
-        <div className="p-6 space-y-8 flex-1">
-          {/* Format */}
-          <div className="space-y-3">
-            <Label className="text-sm font-medium">Format (Paysage)</Label>
-            <RadioGroup 
-              value={state.format} 
-              onValueChange={(v: PaperFormat) => setState({ ...state, format: v })}
-              className="grid grid-cols-2 gap-2"
-            >
-              <div>
-                <RadioGroupItem value="A4" id="a4" className="peer sr-only" />
-                <Label
-                  htmlFor="a4"
-                  className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-transparent p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 cursor-pointer"
-                >
-                  <span className="font-semibold">A4</span>
-                </Label>
-              </div>
-              <div>
-                <RadioGroupItem value="A3" id="a3" className="peer sr-only" />
-                <Label
-                  htmlFor="a3"
-                  className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-transparent p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 cursor-pointer"
-                >
-                  <span className="font-semibold">A3</span>
-                </Label>
-              </div>
-            </RadioGroup>
           </div>
 
-          {/* Direction */}
-          <div className="space-y-3">
-            <Label className="text-sm font-medium">Type d'affiche</Label>
-            <RadioGroup 
-              value={state.arrow} 
-              onValueChange={(v: ArrowType) => setState({ ...state, arrow: v })}
-              className="grid grid-cols-3 gap-2"
-            >
-              <div>
-                <RadioGroupItem value="left" id="left" className="peer sr-only" />
-                <Label
-                  htmlFor="left"
-                  className="flex flex-col items-center justify-center gap-2 rounded-md border-2 border-muted bg-transparent py-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 cursor-pointer"
-                >
-                  <ArrowLeft className="w-5 h-5" />
-                  <span className="text-xs font-medium">Gauche</span>
-                </Label>
-              </div>
-              <div>
-                <RadioGroupItem value="none" id="none" className="peer sr-only" />
-                <Label
-                  htmlFor="none"
-                  className="flex flex-col items-center justify-center gap-2 rounded-md border-2 border-muted bg-transparent py-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 cursor-pointer"
-                >
-                  <Minus className="w-5 h-5" />
-                  <span className="text-xs font-medium">Sans</span>
-                </Label>
-              </div>
-              <div>
-                <RadioGroupItem value="right" id="right" className="peer sr-only" />
-                <Label
-                  htmlFor="right"
-                  className="flex flex-col items-center justify-center gap-2 rounded-md border-2 border-muted bg-transparent py-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 cursor-pointer"
-                >
-                  <ArrowRight className="w-5 h-5" />
-                  <span className="text-xs font-medium">Droite</span>
-                </Label>
-              </div>
-            </RadioGroup>
-
-            {/* Custom arrow image — manager only */}
-            {isManager && (
-              <div className="pt-1">
-                <div className="flex items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="h-8 text-xs"
-                    onClick={() => arrowInputRef.current?.click()}
+          <div className="p-6 space-y-8 flex-1">
+            {/* Format */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Format (Paysage)</Label>
+              <RadioGroup
+                value={state.format}
+                onValueChange={(v: PaperFormat) => setState({ ...state, format: v })}
+                className="grid grid-cols-2 gap-2"
+              >
+                <div>
+                  <RadioGroupItem value="A4" id="a4" className="peer sr-only" />
+                  <Label
+                    htmlFor="a4"
+                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-transparent p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 cursor-pointer"
                   >
-                    <Upload className="w-3.5 h-3.5 mr-1.5" />
-                    {state.customArrowDataUrl ? 'Changer la flèche' : 'Flèche personnalisée…'}
-                  </Button>
-                  {state.customArrowDataUrl && (
-                    <>
-                      <img src={state.customArrowDataUrl} className="h-7 w-7 object-contain rounded border" alt="flèche" />
-                      <button
-                        type="button"
-                        onClick={() => setState({ ...state, customArrowDataUrl: null })}
-                        className="text-muted-foreground hover:text-destructive"
-                        title="Supprimer la flèche personnalisée"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    </>
-                  )}
+                    <span className="font-semibold">A4</span>
+                  </Label>
                 </div>
+                <div>
+                  <RadioGroupItem value="A3" id="a3" className="peer sr-only" />
+                  <Label
+                    htmlFor="a3"
+                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-transparent p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 cursor-pointer"
+                  >
+                    <span className="font-semibold">A3</span>
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            {/* Direction */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Type d'affiche</Label>
+              <RadioGroup
+                value={state.arrow}
+                onValueChange={(v: ArrowType) => setState({ ...state, arrow: v })}
+                className="grid grid-cols-3 gap-2"
+              >
+                <div>
+                  <RadioGroupItem value="left" id="left" className="peer sr-only" />
+                  <Label
+                    htmlFor="left"
+                    className="flex flex-col items-center justify-center gap-2 rounded-md border-2 border-muted bg-transparent py-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 cursor-pointer"
+                  >
+                    <ArrowLeft className="w-5 h-5" />
+                    <span className="text-xs font-medium">Gauche</span>
+                  </Label>
+                </div>
+                <div>
+                  <RadioGroupItem value="none" id="none" className="peer sr-only" />
+                  <Label
+                    htmlFor="none"
+                    className="flex flex-col items-center justify-center gap-2 rounded-md border-2 border-muted bg-transparent py-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 cursor-pointer"
+                  >
+                    <Minus className="w-5 h-5" />
+                    <span className="text-xs font-medium">Sans</span>
+                  </Label>
+                </div>
+                <div>
+                  <RadioGroupItem value="right" id="right" className="peer sr-only" />
+                  <Label
+                    htmlFor="right"
+                    className="flex flex-col items-center justify-center gap-2 rounded-md border-2 border-muted bg-transparent py-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 cursor-pointer"
+                  >
+                    <ArrowRight className="w-5 h-5" />
+                    <span className="text-xs font-medium">Droite</span>
+                  </Label>
+                </div>
+              </RadioGroup>
+
+              {/* Custom arrow image — manager only */}
+              {isManager && (
+                <div className="pt-1">
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-8 text-xs"
+                      onClick={() => arrowInputRef.current?.click()}
+                    >
+                      <Upload className="w-3.5 h-3.5 mr-1.5" />
+                      {state.customArrowDataUrl ? 'Changer la flèche' : 'Flèche personnalisée…'}
+                    </Button>
+                    {state.customArrowDataUrl && (
+                      <>
+                        <img src={state.customArrowDataUrl} className="h-7 w-7 object-contain rounded border" alt="flèche" />
+                        <button
+                          type="button"
+                          onClick={() => setState({ ...state, customArrowDataUrl: null })}
+                          className="text-muted-foreground hover:text-destructive"
+                          title="Supprimer la flèche personnalisée"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </>
+                    )}
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    ref={arrowInputRef}
+                    onChange={(e) => { if (e.target.files?.[0]) handleArrowFile(e.target.files[0]); }}
+                  />
+                </div>
+              )}
+
+              {/* Arrow size slider */}
+              {state.arrow !== 'none' && (
+                <div className="pt-1 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs text-muted-foreground">Taille de la flèche</Label>
+                    <span className="text-xs font-medium tabular-nums">
+                      {Math.round((state.arrowScale ?? 1) * 100)} %
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min={40}
+                    max={140}
+                    step={5}
+                    value={Math.round((state.arrowScale ?? 1) * 100)}
+                    onChange={(e) =>
+                      setState({ ...state, arrowScale: Number(e.target.value) / 100 })
+                    }
+                    className="w-full accent-primary h-1.5 cursor-pointer"
+                  />
+                  <div className="flex justify-between text-[10px] text-muted-foreground">
+                    <span>40 %</span>
+                    <span>100 %</span>
+                    <span>140 %</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Texte */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Texte du bandeau</Label>
+              {(() => {
+                const isDefault = TEXT_OPTIONS.includes(state.text as SignageText);
+                const isSavedCustom = !isDefault && customTexts.includes(state.text);
+                const isEditing = !isDefault && !isSavedCustom;
+                const trimmed = state.text.trim();
+                const canSave =
+                  isEditing &&
+                  trimmed.length > 0 &&
+                  !TEXT_OPTIONS.includes(trimmed as SignageText) &&
+                  !customTexts.includes(trimmed);
+
+                const selectValue = isEditing ? '__custom__' : state.text;
+
+                return (
+                  <>
+                    <Select
+                      value={selectValue}
+                      onValueChange={(v) => {
+                        if (v === '__custom__') {
+                          setState({ ...state, text: '' });
+                        } else {
+                          setState({ ...state, text: v });
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="bg-white">
+                        <SelectValue placeholder="Choisir un texte" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {TEXT_OPTIONS.map((opt) => (
+                          <SelectItem key={opt} value={opt}>
+                            {opt}
+                          </SelectItem>
+                        ))}
+                        {customTexts.length > 0 && (
+                          <div className="my-1 h-px bg-border mx-2" />
+                        )}
+                        {customTexts.map((opt) => (
+                          <SelectItem key={opt} value={opt}>
+                            {opt}
+                          </SelectItem>
+                        ))}
+                        <div className="my-1 h-px bg-border mx-2" />
+                        <SelectItem value="__custom__">Texte personnalisé…</SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    {isEditing && (
+                      <div className="flex gap-2">
+                        <Input
+                          autoFocus
+                          value={state.text}
+                          onChange={(e) => setState({ ...state, text: e.target.value })}
+                          placeholder="Saisissez votre texte"
+                          maxLength={60}
+                          className="bg-white flex-1"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={!canSave}
+                          onClick={() => {
+                            addCustomText(trimmed);
+                            setState({ ...state, text: trimmed });
+                            toast({
+                              title: "Texte enregistré",
+                              description: `« ${trimmed} » est maintenant disponible dans la liste.`,
+                            });
+                          }}
+                          className="h-9 text-xs whitespace-nowrap"
+                        >
+                          <Plus className="w-3.5 h-3.5 mr-1" />
+                          Enregistrer
+                        </Button>
+                      </div>
+                    )}
+
+                    {customTexts.length > 0 && (
+                      <div className="space-y-1 pt-1">
+                        <p className="text-[11px] text-muted-foreground">
+                          Mes textes enregistrés
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {customTexts.map((t) => (
+                            <span
+                              key={t}
+                              className={cn(
+                                "group flex items-center gap-1 text-xs rounded-full px-2.5 py-0.5 border cursor-pointer transition-colors",
+                                state.text === t
+                                  ? "bg-primary text-primary-foreground border-primary"
+                                  : "bg-background text-foreground border-border hover:bg-accent"
+                              )}
+                              onClick={() => setState({ ...state, text: t })}
+                            >
+                              {t}
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  removeCustomText(t);
+                                  if (state.text === t) setState({ ...state, text: TEXT_OPTIONS[0] });
+                                }}
+                                className={cn(
+                                  "opacity-0 group-hover:opacity-100 transition-opacity ml-0.5",
+                                  state.text === t ? "text-primary-foreground/70 hover:text-primary-foreground" : "text-muted-foreground hover:text-destructive"
+                                )}
+                                title="Supprimer"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
+            </div>
+
+            {/* Police — manager only */}
+            {isManager && (
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">Police</Label>
+                <Select
+                  value={state.font}
+                  onValueChange={(v) => setState({ ...state, font: v })}
+                >
+                  <SelectTrigger className="bg-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {FONT_OPTIONS.map((f) => (
+                      <SelectItem key={f.value} value={f.value}>
+                        {f.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Logos */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium">
+                  Logos ({state.selectedLogos.length}/8)
+                </Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Upload className="w-3.5 h-3.5 mr-1.5" />
+                  Ajouter
+                </Button>
                 <input
                   type="file"
                   accept="image/*"
+                  multiple
                   className="hidden"
-                  ref={arrowInputRef}
-                  onChange={(e) => { if (e.target.files?.[0]) handleArrowFile(e.target.files[0]); }}
+                  ref={fileInputRef}
+                  onChange={onFileChange}
                 />
               </div>
-            )}
-
-            {/* Arrow size slider — only shown when arrow is active */}
-            {state.arrow !== 'none' && (
-              <div className="pt-1 space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <Label className="text-xs text-muted-foreground">Taille de la flèche</Label>
-                  <span className="text-xs font-medium tabular-nums">
-                    {Math.round((state.arrowScale ?? 1) * 100)} %
-                  </span>
+              {Object.keys(logos).length === 0 ? (
+                <div
+                  className="border-2 border-dashed rounded-lg p-6 text-center text-sm text-muted-foreground cursor-pointer hover:border-primary/50 hover:bg-accent/50 transition-colors"
+                  onClick={() => fileInputRef.current?.click()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    Array.from(e.dataTransfer.files).forEach(handleFile);
+                  }}
+                  onDragOver={(e) => e.preventDefault()}
+                >
+                  <Upload className="w-8 h-8 mx-auto mb-2 opacity-40" />
+                  <p>Glisser-déposer, coller ou cliquer pour ajouter des logos</p>
                 </div>
-                <input
-                  type="range"
-                  min={40}
-                  max={140}
-                  step={5}
-                  value={Math.round((state.arrowScale ?? 1) * 100)}
-                  onChange={(e) =>
-                    setState({ ...state, arrowScale: Number(e.target.value) / 100 })
-                  }
-                  className="w-full accent-primary h-1.5 cursor-pointer"
-                />
-                <div className="flex justify-between text-[10px] text-muted-foreground">
-                  <span>40 %</span>
-                  <span>100 %</span>
-                  <span>140 %</span>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Texte */}
-          <div className="space-y-3">
-            <Label className="text-sm font-medium">Texte du bandeau</Label>
-            {(() => {
-              const isDefault = TEXT_OPTIONS.includes(state.text as SignageText);
-              const isSavedCustom = !isDefault && customTexts.includes(state.text);
-              const isEditing = !isDefault && !isSavedCustom;
-              const trimmed = state.text.trim();
-              const canSave =
-                isEditing &&
-                trimmed.length > 0 &&
-                !TEXT_OPTIONS.includes(trimmed as SignageText) &&
-                !customTexts.includes(trimmed);
-
-              const selectValue = isEditing ? '__custom__' : state.text;
-
-              return (
-                <>
-                  <Select
-                    value={selectValue}
-                    onValueChange={(v) => {
-                      if (v === '__custom__') {
-                        setState({ ...state, text: '' });
-                      } else {
-                        setState({ ...state, text: v });
-                      }
-                    }}
-                  >
-                    <SelectTrigger className="bg-white">
-                      <SelectValue placeholder="Choisir un texte" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {TEXT_OPTIONS.map((opt) => (
-                        <SelectItem key={opt} value={opt}>
-                          {opt}
-                        </SelectItem>
-                      ))}
-                      {customTexts.length > 0 && (
-                        <div className="my-1 h-px bg-border mx-2" />
-                      )}
-                      {customTexts.map((opt) => (
-                        <SelectItem key={opt} value={opt}>
-                          {opt}
-                        </SelectItem>
-                      ))}
-                      <div className="my-1 h-px bg-border mx-2" />
-                      <SelectItem value="__custom__">Texte personnalisé…</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  {isEditing && (
-                    <div className="flex gap-2">
-                      <Input
-                        autoFocus
-                        value={state.text}
-                        onChange={(e) => setState({ ...state, text: e.target.value })}
-                        placeholder="Saisissez votre texte"
-                        maxLength={60}
-                        className="bg-white flex-1"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        disabled={!canSave}
-                        onClick={() => {
-                          addCustomText(trimmed);
-                          setState({ ...state, text: trimmed });
-                          toast({
-                            title: "Texte enregistré",
-                            description: `« ${trimmed} » est maintenant disponible dans la liste.`,
-                          });
-                        }}
-                        className="h-9 text-xs whitespace-nowrap"
+              ) : (
+                <div
+                  className="grid grid-cols-4 gap-2"
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    Array.from(e.dataTransfer.files).forEach(handleFile);
+                  }}
+                  onDragOver={(e) => e.preventDefault()}
+                >
+                  {Object.entries(logos).map(([id, src]) => {
+                    const idx = state.selectedLogos.indexOf(id);
+                    const selected = idx !== -1;
+                    return (
+                      <div
+                        key={id}
+                        className={cn(
+                          "relative aspect-square rounded-md border-2 overflow-hidden cursor-pointer transition-all group",
+                          selected
+                            ? "border-primary ring-2 ring-primary/20"
+                            : "border-transparent hover:border-muted-foreground/40"
+                        )}
+                        onClick={() => toggleLogo(id)}
                       >
-                        <Plus className="w-3.5 h-3.5 mr-1" />
-                        Enregistrer
-                      </Button>
-                    </div>
-                  )}
-
-                  {customTexts.length > 0 && (
-                    <div className="space-y-1 pt-1">
-                      <p className="text-[11px] text-muted-foreground">
-                        Mes textes enregistrés
-                      </p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {customTexts.map((t) => (
-                          <span
-                            key={t}
-                            className={cn(
-                              "inline-flex items-center gap-1 rounded-full border bg-white px-2 py-0.5 text-[11px]",
-                              state.text === t && "border-primary bg-primary/5"
-                            )}
-                          >
-                            <button
-                              type="button"
-                              onClick={() => setState({ ...state, text: t })}
-                              className="truncate max-w-[140px]"
-                              title="Utiliser ce texte"
-                            >
-                              {t}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                removeCustomText(t);
-                                if (state.text === t) {
-                                  setState({ ...state, text: TEXT_OPTIONS[0] });
-                                }
-                              }}
-                              className="text-muted-foreground hover:text-destructive"
-                              title="Supprimer"
-                            >
-                              <X className="w-3 h-3" />
-                            </button>
+                        <img
+                          src={src}
+                          alt=""
+                          className="w-full h-full object-contain p-1.5"
+                        />
+                        {selected && (
+                          <span className="absolute top-0.5 left-0.5 bg-primary text-primary-foreground text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                            {idx + 1}
                           </span>
-                        ))}
+                        )}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeLogo(id);
+                            setState(prev => ({
+                              ...prev,
+                              selectedLogos: prev.selectedLogos.filter(l => l !== id),
+                            }));
+                          }}
+                          className="absolute top-0.5 right-0.5 bg-background/80 rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground"
+                          title="Supprimer"
+                        >
+                          <X className="w-2.5 h-2.5" />
+                        </button>
                       </div>
-                    </div>
-                  )}
-                </>
-              );
-            })()}
-          </div>
+                    );
+                  })}
+                </div>
+              )}
 
-          {/* Police — manager only */}
-          {isManager && (
-            <div className="space-y-3">
-              <Label className="text-sm font-medium">Police du bandeau</Label>
-              <Select
-                value={state.font || 'Arial'}
-                onValueChange={(v) => setState({ ...state, font: v })}
-              >
-                <SelectTrigger className="bg-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {FONT_OPTIONS.map((f) => (
-                    <SelectItem key={f.value} value={f.value}>
-                      <span style={{ fontFamily: f.value }}>{f.label}</span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
-          {/* Logos */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label className="text-sm font-medium">Logos ({state.selectedLogos.length}/8)</Label>
-              <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} className="h-8 text-xs">
-                <Upload className="w-4 h-4 mr-2" />
-                Ajouter
-              </Button>
-              <input type="file" multiple accept="image/*" className="hidden" ref={fileInputRef} onChange={onFileChange} />
-            </div>
-
-            {state.selectedLogos.length >= 2 && (
-              <SelectedLogosReorder
-                selectedLogos={state.selectedLogos}
-                logos={logos}
-                onReorder={reorderLogos}
-              />
-            )}
-
-            <div className="grid grid-cols-3 gap-2">
-              {Object.entries(logos).map(([id, src]) => {
-                const isSelected = state.selectedLogos.includes(id);
-                const disabled = !isSelected && state.selectedLogos.length >= 8;
-                return (
-                  <div key={id} className="relative group aspect-square rounded-md border bg-white p-2">
-                    <button 
-                      onClick={() => removeLogo(id)}
-                      className="absolute -top-2 -right-2 bg-destructive text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                    <label className={cn("w-full h-full cursor-pointer flex flex-col items-center justify-center", disabled && "opacity-50 cursor-not-allowed")}>
-                      <Checkbox 
-                        checked={isSelected}
-                        disabled={disabled}
-                        onCheckedChange={() => toggleLogo(id)}
-                        className="absolute top-2 left-2"
-                      />
-                      <img src={src} alt="logo" className="w-full h-full object-contain max-h-[80%]" />
-                    </label>
+              {state.selectedLogos.length > 1 && (
+                <div className="space-y-1.5">
+                  <p className="text-[11px] text-muted-foreground">Ordre d'affichage</p>
+                  <div className="space-y-1">
+                    {state.selectedLogos.map((id, idx) => {
+                      const src = logos[id];
+                      if (!src) return null;
+                      return (
+                        <div
+                          key={id}
+                          className="flex items-center gap-2 bg-accent/50 rounded px-2 py-1"
+                          draggable
+                          onDragStart={(e) => e.dataTransfer.setData('text/plain', String(idx))}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            const from = Number(e.dataTransfer.getData('text/plain'));
+                            reorderLogos(from, idx);
+                          }}
+                          onDragOver={(e) => e.preventDefault()}
+                        >
+                          <GripVertical className="w-3.5 h-3.5 text-muted-foreground cursor-grab" />
+                          <img src={src} alt="" className="h-6 w-6 object-contain" />
+                          <span className="text-xs text-muted-foreground flex-1 truncate">Logo {idx + 1}</span>
+                          <button
+                            type="button"
+                            onClick={() => toggleLogo(id)}
+                            className="text-muted-foreground hover:text-destructive"
+                            title="Retirer"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      );
+                    })}
                   </div>
-                );
-              })}
-              {Object.keys(logos).length === 0 && (
-                <div className="col-span-3 py-8 text-center border-2 border-dashed rounded-md text-sm text-muted-foreground flex flex-col items-center gap-2">
-                  <Upload className="w-8 h-8 text-muted" />
-                  Glissez-déposez des images<br/>ou collez (Ctrl+V)
                 </div>
               )}
             </div>
           </div>
 
-          {/* Compilation queue */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between gap-2">
-              <Label className="text-sm font-medium">
-                Liste de compilation ({queue.length})
-              </Label>
-              <div className="flex items-center gap-2">
+          {/* Export actions */}
+          <div className="p-6 border-t space-y-2.5">
+            <div className="flex gap-2">
+              <Button
+                className="flex-1"
+                onClick={handleExport}
+                disabled={!state.text.trim()}
+              >
+                <FileDown className="w-4 h-4 mr-2" />
+                Exporter PDF
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                title="Exporter les 3 variantes (gauche, sans, droite)"
+                onClick={handleExportAllVariants}
+                disabled={!state.text.trim()}
+              >
+                <ImageIcon className="w-4 h-4" />
+              </Button>
+            </div>
+
+            {/* PNG export — manager only */}
+            {isManager && (
+              <Button
+                variant="outline"
+                className="w-full text-xs h-8"
+                onClick={handleBannerExport}
+                disabled={!state.text.trim()}
+              >
+                <ImageIcon className="w-3.5 h-3.5 mr-1.5" />
+                Exporter le bandeau (PNG)
+              </Button>
+            )}
+
+            {/* Queue */}
+            <div className="pt-2 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Compilation ({queue.length})
+                </span>
                 <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={addToQueue}
-                  disabled={state.selectedLogos.length === 0}
-                  className="h-8 text-xs"
-                >
-                  <ListPlus className="w-4 h-4 mr-2" />
-                  Ajouter cet affichage
-                </Button>
-                <Button
+                  type="button"
                   variant="ghost"
                   size="sm"
-                  onClick={() => {
-                    if (
-                      window.confirm(
-                        "Vider toute la liste de compilation ?"
-                      )
-                    ) {
-                      setQueue([]);
-                    }
-                  }}
-                  disabled={queue.length === 0}
-                  className="h-8 text-xs text-destructive hover:text-destructive"
-                  title="Vider la liste"
+                  className="h-6 text-xs px-2"
+                  onClick={addToQueue}
+                  disabled={!state.text.trim()}
+                  title="Ajouter à la compilation"
                 >
-                  <Trash2 className="w-4 h-4 mr-1" />
-                  Vider
+                  <ListPlus className="w-3.5 h-3.5 mr-1" />
+                  Ajouter
                 </Button>
               </div>
-            </div>
 
-            {queue.length === 0 ? (
-              <div className="py-6 text-center border-2 border-dashed rounded-md text-xs text-muted-foreground">
-                Configurez un affichage puis cliquez sur "Ajouter cet affichage"
-                pour le mettre dans la liste, et compilez ensuite tous les A4
-                ou A3 en un seul PDF.
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {queue.map((q) => (
-                  <QueueRow
-                    key={q.id}
-                    queueItem={q}
-                    onLoad={() => loadFromQueue(q.id)}
-                    onRemove={() => removeFromQueue(q.id)}
-                    onQuantity={(n) => setQuantity(q.id, n)}
-                  />
-                ))}
-              </div>
-            )}
+              {queue.length > 0 && (
+                <ScrollArea className="max-h-40">
+                  <div className="space-y-1 pr-2">
+                    {queue.map((item) => (
+                      <div
+                        key={item.id}
+                        className="flex items-center gap-2 bg-accent/40 rounded px-2 py-1.5 text-xs"
+                      >
+                        <button
+                          type="button"
+                          className="flex-1 text-left truncate hover:underline"
+                          onClick={() => loadFromQueue(item.id)}
+                          title="Charger cet affichage"
+                        >
+                          <span className="font-medium">{item.item.format}</span>{' '}
+                          <span className="text-muted-foreground">
+                            {item.item.text} · {ARROW_LABEL[item.item.arrow]}
+                          </span>
+                        </button>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            type="button"
+                            className="w-5 h-5 flex items-center justify-center rounded hover:bg-background border text-muted-foreground hover:text-foreground"
+                            onClick={() => setQuantity(item.id, item.quantity - 1)}
+                          >
+                            <Minus className="w-2.5 h-2.5" />
+                          </button>
+                          <span className="w-5 text-center tabular-nums">{item.quantity}</span>
+                          <button
+                            type="button"
+                            className="w-5 h-5 flex items-center justify-center rounded hover:bg-background border text-muted-foreground hover:text-foreground"
+                            onClick={() => setQuantity(item.id, item.quantity + 1)}
+                          >
+                            <Plus className="w-2.5 h-2.5" />
+                          </button>
+                          <button
+                            type="button"
+                            className="ml-1 text-muted-foreground hover:text-destructive"
+                            onClick={() => removeFromQueue(item.id)}
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              )}
+
+              {(a4Pages > 0 || a3Pages > 0) && (
+                <div className="flex gap-2 pt-1">
+                  {a4Pages > 0 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 h-8 text-xs"
+                      onClick={() => handleBulkExport('A4')}
+                    >
+                      <FileDown className="w-3.5 h-3.5 mr-1" />
+                      A4 ({a4Pages}p)
+                    </Button>
+                  )}
+                  {a3Pages > 0 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 h-8 text-xs"
+                      onClick={() => handleBulkExport('A3')}
+                    >
+                      <FileDown className="w-3.5 h-3.5 mr-1" />
+                      A3 ({a3Pages}p)
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
-        <div className="p-6 border-t mt-auto space-y-2">
-          <Button onClick={handleExport} size="lg" className="w-full text-base h-12">
-            <FileDown className="w-5 h-5 mr-2" />
-            Exporter cet affichage
-          </Button>
-          <Button
-            onClick={handleExportAllVariants}
-            variant="outline"
-            size="sm"
-            className="w-full text-xs h-9"
-          >
-            <FileDown className="w-3.5 h-3.5 mr-2" />
-            Exporter les 3 variantes
-          </Button>
-          {isManager && (
-            <Button
-              onClick={handleBannerExport}
-              variant="outline"
-              size="sm"
-              className="w-full text-xs h-9"
-            >
-              <ImageIcon className="w-3.5 h-3.5 mr-2" />
-              Exporter le bandeau (PNG)
-            </Button>
-          )}
-
-          {(a4Pages > 0 || a3Pages > 0) && (
-            <div className="pt-2 mt-2 border-t space-y-2">
-              <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
-                Compilation de la liste
-              </p>
-              <Button
-                onClick={() => handleBulkExport('A4')}
-                disabled={a4Pages === 0}
-                size="lg"
-                className="w-full text-sm h-11"
-                variant={a4Pages > 0 ? 'default' : 'secondary'}
-              >
-                <FileDown className="w-4 h-4 mr-2" />
-                PDF A4 — {a4Pages} affichage{a4Pages > 1 ? 's' : ''}
-              </Button>
-              <Button
-                onClick={() => handleBulkExport('A3')}
-                disabled={a3Pages === 0}
-                size="lg"
-                className="w-full text-sm h-11"
-                variant={a3Pages > 0 ? 'default' : 'secondary'}
-              >
-                <FileDown className="w-4 h-4 mr-2" />
-                PDF A3 — {a3Pages} affichage{a3Pages > 1 ? 's' : ''}
-              </Button>
-            </div>
-          )}
+        {/* Preview Panel */}
+        <div className="flex-1 flex flex-col h-[100dvh] overflow-hidden bg-muted/30">
+          <PDFPreview state={state} logos={logos} />
         </div>
       </div>
-
-      {/* Preview Panel */}
-      <div className="flex-1 min-h-[50dvh] md:h-[100dvh] overflow-hidden">
-        <PDFPreview state={state} allLogos={logos} />
-      </div>
-
-    </div>
-  );
-}
-
-function QueueRow({
-  queueItem,
-  onLoad,
-  onRemove,
-  onQuantity,
-}: {
-  queueItem: QueueItem;
-  onLoad: () => void;
-  onRemove: () => void;
-  onQuantity: (n: number) => void;
-}) {
-  const { item, quantity } = queueItem;
-  const ArrowIcon =
-    item.arrow === 'left' ? ArrowLeft : item.arrow === 'right' ? ArrowRight : Minus;
-
-  return (
-    <div className="flex items-center gap-2 rounded-md border bg-white p-2">
-      <button
-        onClick={onLoad}
-        className="flex-1 min-w-0 text-left flex items-center gap-2 hover:bg-muted/40 rounded p-1 -m-1"
-        title="Cliquer pour recharger dans l'éditeur"
-      >
-        <span
-          className={cn(
-            "shrink-0 inline-flex items-center justify-center text-[10px] font-bold rounded px-1.5 py-0.5",
-            item.format === 'A4'
-              ? "bg-blue-100 text-blue-800"
-              : "bg-amber-100 text-amber-800"
-          )}
-        >
-          {item.format}
-        </span>
-        <ArrowIcon className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
-        <span className="text-xs font-medium truncate">{item.text}</span>
-        <span className="text-[10px] text-muted-foreground shrink-0">
-          · {item.selectedLogos.length} logo{item.selectedLogos.length > 1 ? 's' : ''}
-        </span>
-      </button>
-
-      <div className="flex items-center gap-1 shrink-0">
-        <Button
-          size="icon"
-          variant="outline"
-          className="h-6 w-6"
-          onClick={() => onQuantity(quantity - 1)}
-          disabled={quantity <= 1}
-        >
-          <Minus className="w-3 h-3" />
-        </Button>
-        <span className="text-xs font-semibold w-5 text-center tabular-nums">
-          {quantity}
-        </span>
-        <Button
-          size="icon"
-          variant="outline"
-          className="h-6 w-6"
-          onClick={() => onQuantity(quantity + 1)}
-          disabled={quantity >= 99}
-        >
-          <Plus className="w-3 h-3" />
-        </Button>
-      </div>
-
-      <Button
-        size="icon"
-        variant="ghost"
-        className="h-6 w-6 text-muted-foreground hover:text-destructive shrink-0"
-        onClick={onRemove}
-      >
-        <X className="w-3.5 h-3.5" />
-      </Button>
-    </div>
-  );
-}
-
-function SelectedLogosReorder({
-  selectedLogos,
-  logos,
-  onReorder,
-}: {
-  selectedLogos: string[];
-  logos: Record<string, string>;
-  onReorder: (from: number, to: number) => void;
-}) {
-  const [dragIndex, setDragIndex] = useState<number | null>(null);
-  const [overIndex, setOverIndex] = useState<number | null>(null);
-
-  return (
-    <div className="rounded-md border bg-muted/30 p-2">
-      <div className="flex items-center gap-1 mb-2 text-[11px] text-muted-foreground">
-        <GripVertical className="w-3 h-3" />
-        <span>Glissez pour réorganiser</span>
-      </div>
-      <div className="flex flex-wrap gap-2">
-        {selectedLogos.map((id, idx) => {
-          const src = logos[id];
-          if (!src) return null;
-          const isOver = overIndex === idx && dragIndex !== null && dragIndex !== idx;
-          return (
-            <div
-              key={id}
-              draggable
-              onDragStart={(e) => {
-                setDragIndex(idx);
-                e.dataTransfer.effectAllowed = 'move';
-              }}
-              onDragOver={(e) => {
-                e.preventDefault();
-                e.dataTransfer.dropEffect = 'move';
-                if (overIndex !== idx) setOverIndex(idx);
-              }}
-              onDragLeave={() => {
-                if (overIndex === idx) setOverIndex(null);
-              }}
-              onDrop={(e) => {
-                e.preventDefault();
-                if (dragIndex !== null) onReorder(dragIndex, idx);
-                setDragIndex(null);
-                setOverIndex(null);
-              }}
-              onDragEnd={() => {
-                setDragIndex(null);
-                setOverIndex(null);
-              }}
-              className={cn(
-                "relative w-14 h-14 rounded-md border bg-white p-1 cursor-grab active:cursor-grabbing transition-all",
-                dragIndex === idx && "opacity-40",
-                isOver && "ring-2 ring-primary ring-offset-1"
-              )}
-              title={`Position ${idx + 1}`}
-            >
-              <img src={src} alt="" className="w-full h-full object-contain" />
-              <span className="absolute -top-1.5 -left-1.5 bg-primary text-primary-foreground text-[10px] font-semibold rounded-full w-4 h-4 flex items-center justify-center">
-                {idx + 1}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-// ── Auth-aware helper components ─────────────────────────────────────────────
-
-function UserWidget({ isManager }: { isManager: boolean }) {
-  const { user } = useUser();
-  const { signOut } = useClerk();
-  const [, setLocation] = useLocation();
-  if (!user) return null;
-  return (
-    <div className="flex flex-col items-end gap-1.5 shrink-0">
-      <div className="flex items-center gap-1.5">
-        {isManager && <UserManagementDialog />}
-        <span className={cn(
-          "text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded",
-          isManager ? "bg-amber-100 text-amber-800" : "bg-muted text-muted-foreground"
-        )}>
-          {isManager ? 'Manageur' : 'Utilisateur'}
-        </span>
-      </div>
-      <button
-        onClick={() => signOut(() => setLocation('/'))}
-        className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
-        title="Se déconnecter"
-      >
-        <LogOut className="w-3 h-3" />
-        Déconnexion
-      </button>
-    </div>
-  );
-}
-
-function LandingPage() {
-  const [, setLocation] = useLocation();
-  return (
-    <div className="min-h-[100dvh] flex flex-col items-center justify-center bg-[#EAE3D2] px-4 gap-8">
-      <div className="text-center space-y-3">
-        <img src={`${basePath}/logo.svg`} alt="Hôtel" className="h-16 mx-auto" />
-        <h1 className="text-3xl font-light tracking-widest text-zinc-900 uppercase" style={{ fontFamily: 'Georgia, serif' }}>
-          Affichages Hôtel
-        </h1>
-        <p className="text-zinc-600 text-sm tracking-wide">Générateur d'affiches directionnelles</p>
-      </div>
-      <Button onClick={() => setLocation('/sign-in')} size="lg" className="px-8">
-        Se connecter
-      </Button>
-    </div>
-  );
-}
-
-function AppShell() {
-  const { user, isLoaded } = useUser();
-  if (!isLoaded) return null;
-  const isManager = user?.publicMetadata?.role === 'manager';
-  if (!user) return <Redirect to="/" />;
-  return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Main isManager={isManager} />
-        <Toaster />
-      </TooltipProvider>
-    </QueryClientProvider>
-  );
-}
-
-function HomeRoute() {
-  const { user, isLoaded } = useUser();
-  if (!isLoaded) return null;
-  if (user) return <Redirect to="/app" />;
-  return <LandingPage />;
-}
-
-function ClerkProviderWithRoutes() {
-  const [, setLocation] = useLocation();
-  return (
-    <ClerkProvider
-      publishableKey={clerkPubKey!}
-      proxyUrl={clerkProxyUrl}
-      appearance={clerkAppearance}
-      signInUrl={`${basePath}/sign-in`}
-      routerPush={(to) => setLocation(stripBase(to))}
-      routerReplace={(to) => setLocation(stripBase(to), { replace: true })}
-    >
-      <Switch>
-        <Route path="/" component={HomeRoute} />
-        <Route path="/sign-in/*?" component={SignInPage} />
-        <Route path="/app" component={AppShell} />
-        <Route><Redirect to="/" /></Route>
-      </Switch>
-    </ClerkProvider>
+    </>
   );
 }
 
 function App() {
   return (
-    <WouterRouter base={basePath}>
-      <ClerkProviderWithRoutes />
-    </WouterRouter>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Main />
+        <Toaster />
+      </TooltipProvider>
+    </QueryClientProvider>
   );
 }
 
