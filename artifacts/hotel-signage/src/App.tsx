@@ -16,7 +16,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowLeft, ArrowRight, Minus, Upload, X, FileDown, GripVertical, Plus, ListPlus } from "lucide-react";
+import { ArrowLeft, ArrowRight, Minus, Upload, X, FileDown, GripVertical, Plus, ListPlus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import { useLogos } from "@/hooks/use-logos";
@@ -471,20 +471,41 @@ function Main() {
 
           {/* Compilation queue */}
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
               <Label className="text-sm font-medium">
                 Liste de compilation ({queue.length})
               </Label>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={addToQueue}
-                disabled={state.selectedLogos.length === 0}
-                className="h-8 text-xs"
-              >
-                <ListPlus className="w-4 h-4 mr-2" />
-                Ajouter cet affichage
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={addToQueue}
+                  disabled={state.selectedLogos.length === 0}
+                  className="h-8 text-xs"
+                >
+                  <ListPlus className="w-4 h-4 mr-2" />
+                  Ajouter cet affichage
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    if (
+                      window.confirm(
+                        "Vider toute la liste de compilation ?"
+                      )
+                    ) {
+                      setQueue([]);
+                    }
+                  }}
+                  disabled={queue.length === 0}
+                  className="h-8 text-xs text-destructive hover:text-destructive"
+                  title="Vider la liste"
+                >
+                  <Trash2 className="w-4 h-4 mr-1" />
+                  Vider
+                </Button>
+              </div>
             </div>
 
             {queue.length === 0 ? (
