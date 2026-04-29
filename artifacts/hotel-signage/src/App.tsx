@@ -512,8 +512,8 @@ function Main() {
                 </div>
               )}
 
-              {/* Arrow size slider */}
-              {state.arrow !== 'none' && (
+              {/* Arrow size slider — manager only */}
+              {isManager && state.arrow !== 'none' && (
                 <div className="pt-1 space-y-1.5">
                   <div className="flex items-center justify-between">
                     <Label className="text-xs text-muted-foreground">Taille de la flèche</Label>
