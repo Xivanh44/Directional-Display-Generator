@@ -955,7 +955,7 @@ function Main() {
 
         {/* Preview Panel */}
         <div className="flex-1 flex flex-col h-[100dvh] overflow-hidden bg-muted/30">
-          <PDFPreview state={state} logos={logos} />
+          <PDFPreview state={state} allLogos={logos} />
         </div>
       </div>
     </>
