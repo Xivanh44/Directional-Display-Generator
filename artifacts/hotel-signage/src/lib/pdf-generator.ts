@@ -119,8 +119,8 @@ function renderPage(
       arrow === 'none'
         ? w * 0.9
         : w - 2 * arrowSpace - safetyPad * 2;
-    // Available height: ~80% of banner so a single line breathes vertically.
-    const maxTextH = bannerH * 0.8;
+    // Available height: 70% of banner so descenders (j, g, p…) are never clipped.
+    const maxTextH = bannerH * 0.70;
 
     // Binary search the largest font size (in pt) that fits both width & height.
     // jsPDF uses pt internally; 1pt = 0.3528 mm.

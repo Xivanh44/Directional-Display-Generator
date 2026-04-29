@@ -195,7 +195,7 @@ function AutoFitText({ text }: { text: string }) {
           fontFamily: 'Arial, sans-serif',
           fontWeight: 'normal',
           color: '#000',
-          lineHeight: 1,
+          lineHeight: 1.25,
           display: 'inline-block',
         }}
       >
