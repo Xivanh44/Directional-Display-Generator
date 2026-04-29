@@ -4,7 +4,7 @@ import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 
 const basePath = (import.meta.env.BASE_URL as string).replace(/\/$/, '');
 
@@ -19,7 +19,10 @@ export function SignInPage() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!isLoaded) return;
+    if (!isLoaded || !signIn) {
+      setError('Le service est en cours de chargement. Veuillez réessayer dans un instant.');
+      return;
+    }
     setError('');
     setLoading(true);
     try {
@@ -112,8 +115,10 @@ export function SignInPage() {
               </p>
             )}
 
-            <Button type="submit" className="w-full" size="lg" disabled={loading || !isLoaded}>
-              {loading ? 'Connexion…' : 'Se connecter'}
+            <Button type="submit" className="w-full" size="lg" disabled={loading}>
+              {loading
+                ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Connexion…</>
+                : 'Se connecter'}
             </Button>
           </form>
 

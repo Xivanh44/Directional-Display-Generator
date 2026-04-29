@@ -74,10 +74,9 @@ const ARROW_LABEL: Record<ArrowType, string> = {
 const queryClient = new QueryClient();
 
 // ── Clerk setup ──────────────────────────────────────────────────────────────
-const clerkPubKey = publishableKeyFromHost(
-  window.location.hostname,
-  import.meta.env.VITE_CLERK_PUBLISHABLE_KEY,
-);
+const clerkPubKey =
+  (import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string | undefined) ||
+  publishableKeyFromHost(window.location.hostname, undefined);
 const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL as string | undefined;
 const basePath = (import.meta.env.BASE_URL as string).replace(/\/$/, '');
 
