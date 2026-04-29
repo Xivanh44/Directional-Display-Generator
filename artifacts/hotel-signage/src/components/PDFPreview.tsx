@@ -4,8 +4,9 @@ import {
   BANNER_HEIGHT_PCT,
   ARROW_HEIGHT_PCT,
   ARROW_WIDTH_RATIO,
-  ARROW_STROKE_RATIO,
   ARROW_MARGIN_PCT,
+  CHEVRON_BACK_INNER,
+  CHEVRON_TIP_INNER,
 } from '@/lib/pdf-generator';
 
 interface PDFPreviewProps {
@@ -218,27 +219,20 @@ function ChevronSvg({ direction }: { direction: 'left' | 'right' }) {
   // viewBox uses ARROW_WIDTH_RATIO so the chevron fits its container.
   const W = 100 * ARROW_WIDTH_RATIO;
   const H = 100;
-  const stroke = H * ARROW_STROKE_RATIO;
-  // Inset the path by half the stroke so the rounded caps stay inside the box.
-  const inset = stroke / 2;
+  const backInner = W * CHEVRON_BACK_INNER;
+  const tipInner = W * CHEVRON_TIP_INNER;
+  // Filled chevron (solid arrowhead with V-notch on the back).
   const path =
     direction === 'right'
-      ? `M ${inset},${inset} L ${W - inset},${H / 2} L ${inset},${H - inset}`
-      : `M ${W - inset},${inset} L ${inset},${H / 2} L ${W - inset},${H - inset}`;
+      ? `M 0,0 L ${W},${H / 2} L 0,${H} L ${backInner},${H} L ${tipInner},${H / 2} L ${backInner},0 Z`
+      : `M ${W},0 L 0,${H / 2} L ${W},${H} L ${W - backInner},${H} L ${W - tipInner},${H / 2} L ${W - backInner},0 Z`;
   return (
     <svg
       viewBox={`0 0 ${W} ${H}`}
       className="w-full h-full"
       preserveAspectRatio="xMidYMid meet"
     >
-      <path
-        d={path}
-        fill="none"
-        stroke="#000000"
-        strokeWidth={stroke}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+      <path d={path} fill="#000000" />
     </svg>
   );
 }

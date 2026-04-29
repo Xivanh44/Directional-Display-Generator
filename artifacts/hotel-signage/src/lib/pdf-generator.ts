@@ -18,8 +18,13 @@ const FORMAT_DIMS = {
 export const BANNER_HEIGHT_PCT = 0.22;
 export const ARROW_HEIGHT_PCT = 0.55; // relative to banner
 export const ARROW_WIDTH_RATIO = 0.7; // chevron width / chevron height
-export const ARROW_STROKE_RATIO = 0.22; // stroke width / chevron height
+export const ARROW_STROKE_RATIO = 0.22; // legacy: kept for backward compat
 export const ARROW_MARGIN_PCT = 0.045; // relative to page width
+// Filled chevron geometry: inner notch points expressed as fractions of width.
+// backInner = how far the back band extends from the back edge.
+// tipInner  = position of the inner notch tip (back of the V).
+export const CHEVRON_BACK_INNER = 0.42;
+export const CHEVRON_TIP_INNER = 0.58;
 
 export const TEXT_OPTIONS = [
   'Déjeuner',
@@ -65,36 +70,53 @@ function renderPage(
   doc.setFillColor(THEME.beigeRGB[0], THEME.beigeRGB[1], THEME.beigeRGB[2]);
   doc.rect(0, 0, w, bannerH, 'F');
 
-  // Arrow (chevron stroke)
+  // Arrow (filled chevron shape)
   if (arrow !== 'none') {
     const chevronH = bannerH * ARROW_HEIGHT_PCT;
     const chevronW = chevronH * ARROW_WIDTH_RATIO;
-    const stroke = chevronH * ARROW_STROKE_RATIO;
     const margin = w * ARROW_MARGIN_PCT;
     const yTop = (bannerH - chevronH) / 2;
+    const backInner = chevronW * CHEVRON_BACK_INNER;
+    const tipInner = chevronW * CHEVRON_TIP_INNER;
 
-    doc.setDrawColor(0, 0, 0);
-    doc.setLineWidth(stroke);
-    doc.setLineCap('round');
-    doc.setLineJoin('round');
+    doc.setFillColor(0, 0, 0);
+    doc.setLineJoin('miter');
 
-    if (arrow === 'left') {
-      const xRight = margin + chevronW;
-      doc.lines(
-        [[-chevronW, chevronH / 2], [chevronW, chevronH / 2]],
-        xRight,
-        yTop,
-        [1, 1],
-        'S'
-      );
-    } else {
+    if (arrow === 'right') {
+      // Tip on the right side of the banner; back edge on the left.
       const xLeft = w - margin - chevronW;
+      // Path starts at top-back-left corner (P0 = (0,0) inside chevron box).
       doc.lines(
-        [[chevronW, chevronH / 2], [-chevronW, chevronH / 2]],
+        [
+          [chevronW, chevronH / 2],          // → tip
+          [-chevronW, chevronH / 2],         // → bottom-back-left
+          [backInner, 0],                    // → bottom inner corner
+          [tipInner - backInner, -chevronH / 2], // → inner notch tip
+          [-(tipInner - backInner), -chevronH / 2], // → top inner corner
+        ],
         xLeft,
         yTop,
         [1, 1],
-        'S'
+        'F',
+        true
+      );
+    } else {
+      // Tip on the left side of the banner; back edge on the right.
+      const xLeft = margin;
+      // Path starts at top-back-right corner (P0 = (W,0) inside chevron box).
+      doc.lines(
+        [
+          [-chevronW, chevronH / 2],         // → tip
+          [chevronW, chevronH / 2],          // → bottom-back-right
+          [-backInner, 0],                   // → bottom inner corner
+          [-(tipInner - backInner), -chevronH / 2], // → inner notch tip
+          [tipInner - backInner, -chevronH / 2],    // → top inner corner
+        ],
+        xLeft + chevronW,
+        yTop,
+        [1, 1],
+        'F',
+        true
       );
     }
   }
