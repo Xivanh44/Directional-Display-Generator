@@ -101,13 +101,13 @@ export function PDFPreview({ state, allLogos }: PDFPreviewProps) {
               </div>
             ) : count === 3 ? (
               <div className="w-full h-full flex flex-col gap-4">
-                <div className="flex-1 grid grid-cols-2 gap-4">
+                <div className="flex-1 min-h-0 grid grid-cols-2 gap-4">
                   {selectedLogos.slice(0, 2).map((id) => (
                     <LogoCell key={id} src={allLogos[id]} />
                   ))}
                 </div>
-                <div className="flex-1 grid grid-cols-2 gap-4">
-                  <div className="col-span-2 mx-auto w-1/2">
+                <div className="flex-1 min-h-0 flex items-center justify-center">
+                  <div className="w-1/2 h-full">
                     <LogoCell src={allLogos[selectedLogos[2]]} />
                   </div>
                 </div>
