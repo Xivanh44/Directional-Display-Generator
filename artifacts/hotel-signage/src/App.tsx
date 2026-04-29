@@ -73,6 +73,7 @@ function Main() {
     selectedLogos: [],
     font: 'Arial',
     customArrowDataUrl: null,
+    arrowScale: 1,
   });
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -374,6 +375,34 @@ function Main() {
                 onChange={(e) => { if (e.target.files?.[0]) handleArrowFile(e.target.files[0]); }}
               />
             </div>
+
+            {/* Arrow size slider — only shown when arrow is active */}
+            {state.arrow !== 'none' && (
+              <div className="pt-1 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs text-muted-foreground">Taille de la flèche</Label>
+                  <span className="text-xs font-medium tabular-nums">
+                    {Math.round((state.arrowScale ?? 1) * 100)} %
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min={40}
+                  max={140}
+                  step={5}
+                  value={Math.round((state.arrowScale ?? 1) * 100)}
+                  onChange={(e) =>
+                    setState({ ...state, arrowScale: Number(e.target.value) / 100 })
+                  }
+                  className="w-full accent-primary h-1.5 cursor-pointer"
+                />
+                <div className="flex justify-between text-[10px] text-muted-foreground">
+                  <span>40 %</span>
+                  <span>100 %</span>
+                  <span>140 %</span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Texte */}

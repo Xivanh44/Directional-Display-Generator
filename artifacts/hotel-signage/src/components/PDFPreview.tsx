@@ -17,13 +17,14 @@ export function PDFPreview({ state, allLogos }: PDFPreviewProps) {
   const aspectRatio = 297 / 210; // A4/A3 Landscape
 
   const { format, arrow, text, selectedLogos } = state;
+  const arrowScale = state.arrowScale ?? 1;
   const count = selectedLogos.length;
 
   // Reserved horizontal space (per side) on banner so text never overlaps the arrow.
-  // Arrow visual width as % of banner WIDTH = arrow_h_pct * banner_h_pct * arrow_w_ratio / aspectRatio.
+  // Arrow visual width as % of banner WIDTH = arrow_h_pct * scale * banner_h_pct * arrow_w_ratio / aspectRatio.
   const arrowReservedPct =
     (ARROW_MARGIN_PCT +
-      (ARROW_HEIGHT_PCT * BANNER_HEIGHT_PCT * ARROW_WIDTH_RATIO) / aspectRatio) *
+      (ARROW_HEIGHT_PCT * arrowScale * BANNER_HEIGHT_PCT * ARROW_WIDTH_RATIO) / aspectRatio) *
     100;
   const SAFE_GAP_PCT = 2;
   const sidePadPct = arrow !== 'none' ? arrowReservedPct + SAFE_GAP_PCT : 5;
@@ -62,7 +63,7 @@ export function PDFPreview({ state, allLogos }: PDFPreviewProps) {
                 className="absolute flex items-center justify-start"
                 style={{
                   left: `${ARROW_MARGIN_PCT * 100}%`,
-                  height: `${ARROW_HEIGHT_PCT * 100}%`,
+                  height: `${ARROW_HEIGHT_PCT * arrowScale * 100}%`,
                   aspectRatio: `${ARROW_WIDTH_RATIO}`,
                 }}
               >
@@ -84,7 +85,7 @@ export function PDFPreview({ state, allLogos }: PDFPreviewProps) {
                 className="absolute flex items-center justify-end"
                 style={{
                   right: `${ARROW_MARGIN_PCT * 100}%`,
-                  height: `${ARROW_HEIGHT_PCT * 100}%`,
+                  height: `${ARROW_HEIGHT_PCT * arrowScale * 100}%`,
                   aspectRatio: `${ARROW_WIDTH_RATIO}`,
                 }}
               >

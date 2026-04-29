@@ -10,6 +10,7 @@ export interface SignageState {
   selectedLogos: string[];
   font?: string;
   customArrowDataUrl?: string | null;
+  arrowScale?: number; // multiplier on ARROW_HEIGHT_PCT, default 1.0
 }
 
 export const FORMAT_DIMS = {

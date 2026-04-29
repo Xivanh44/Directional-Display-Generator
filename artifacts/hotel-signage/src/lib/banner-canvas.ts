@@ -33,7 +33,8 @@ export async function renderBannerToCanvas(state: SignageState): Promise<HTMLCan
   ctx.fillStyle = BEIGE;
   ctx.fillRect(0, 0, canvasW, canvasH);
 
-  const chevronH = canvasH * ARROW_HEIGHT_PCT;
+  const scale = state.arrowScale ?? 1;
+  const chevronH = canvasH * ARROW_HEIGHT_PCT * scale;
   const chevronW = chevronH * ARROW_WIDTH_RATIO;
   const margin = canvasW * ARROW_MARGIN_PCT;
   const yTop = (canvasH - chevronH) / 2;
