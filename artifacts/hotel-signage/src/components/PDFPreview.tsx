@@ -5,8 +5,7 @@ import {
   ARROW_HEIGHT_PCT,
   ARROW_WIDTH_RATIO,
   ARROW_MARGIN_PCT,
-  CHEVRON_BACK_INNER,
-  CHEVRON_TIP_INNER,
+  CHEVRON_NOTCH,
 } from '@/lib/pdf-generator';
 
 interface PDFPreviewProps {
@@ -216,16 +215,14 @@ function LogoCell({ src }: { src: string }) {
 }
 
 function ChevronSvg({ direction }: { direction: 'left' | 'right' }) {
-  // viewBox uses ARROW_WIDTH_RATIO so the chevron fits its container.
+  // Solid wayfinding chevron ">" — 4 vertices, no tail, sharp corners.
   const W = 100 * ARROW_WIDTH_RATIO;
   const H = 100;
-  const backInner = W * CHEVRON_BACK_INNER;
-  const tipInner = W * CHEVRON_TIP_INNER;
-  // Filled chevron (solid arrowhead with V-notch on the back).
+  const notch = W * CHEVRON_NOTCH;
   const path =
     direction === 'right'
-      ? `M 0,0 L ${W},${H / 2} L 0,${H} L ${backInner},${H} L ${tipInner},${H / 2} L ${backInner},0 Z`
-      : `M ${W},0 L 0,${H / 2} L ${W},${H} L ${W - backInner},${H} L ${W - tipInner},${H / 2} L ${W - backInner},0 Z`;
+      ? `M 0,0 L ${W},${H / 2} L 0,${H} L ${notch},${H / 2} Z`
+      : `M ${W},0 L 0,${H / 2} L ${W},${H} L ${W - notch},${H / 2} Z`;
   return (
     <svg
       viewBox={`0 0 ${W} ${H}`}
