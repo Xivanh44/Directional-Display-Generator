@@ -21,11 +21,11 @@ import { cn } from "@/lib/utils";
 
 import {
   ClerkProvider,
-  SignIn,
   SignUp,
   useUser,
   useClerk,
 } from '@clerk/react';
+import { SignInPage } from '@/pages/SignInPage';
 import { publishableKeyFromHost } from '@clerk/react/internal';
 import { shadcn } from '@clerk/themes';
 import { Switch, Route, useLocation, Router as WouterRouter, Redirect } from 'wouter';
@@ -980,14 +980,6 @@ function UserWidget({ isManager }: { isManager: boolean }) {
         <LogOut className="w-3 h-3" />
         Déconnexion
       </button>
-    </div>
-  );
-}
-
-function SignInPage() {
-  return (
-    <div className="min-h-[100dvh] flex items-center justify-center bg-[#EAE3D2] px-4">
-      <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} />
     </div>
   );
 }
