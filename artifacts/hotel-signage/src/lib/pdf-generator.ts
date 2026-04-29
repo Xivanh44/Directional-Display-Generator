@@ -16,12 +16,12 @@ const FORMAT_DIMS = {
 };
 
 export const BANNER_HEIGHT_PCT = 0.22;
-export const ARROW_HEIGHT_PCT = 0.72; // relative to banner — tall, signage style
-export const ARROW_WIDTH_RATIO = 0.85; // chevron width / chevron height — wide ">"
-export const ARROW_MARGIN_PCT = 0.045; // relative to page width
-// Inner notch position as fraction of chevron width (0 = no notch / pure triangle,
-// closer to 1 = thin tapered shape). 0.32 gives a thick wayfinding-style ">".
-export const CHEVRON_NOTCH = 0.32;
+// Chevron in the style of Unicode U+276F (❯): two thick diagonal strokes
+// meeting at a sharp mitered vertex, square ends, no tail.
+export const ARROW_HEIGHT_PCT = 0.7;   // chevron height / banner height
+export const ARROW_WIDTH_RATIO = 0.55; // chevron width / chevron height
+export const ARROW_STROKE_RATIO = 0.22; // stroke thickness / chevron height
+export const ARROW_MARGIN_PCT = 0.045;  // relative to page width
 
 export const TEXT_OPTIONS = [
   'Déjeuner',
@@ -67,47 +67,40 @@ function renderPage(
   doc.setFillColor(THEME.beigeRGB[0], THEME.beigeRGB[1], THEME.beigeRGB[2]);
   doc.rect(0, 0, w, bannerH, 'F');
 
-  // Arrow — solid wayfinding chevron ">" (4 vertices, no tail).
-  // Vertices: top-back-outer → tip → bottom-back-outer → inner notch → close.
+  // Arrow — chevron in the style of Unicode U+276F (❯): two thick diagonal
+  // strokes meeting at a sharp mitered vertex, square ends, no tail.
   if (arrow !== 'none') {
     const chevronH = bannerH * ARROW_HEIGHT_PCT;
     const chevronW = chevronH * ARROW_WIDTH_RATIO;
+    const stroke = chevronH * ARROW_STROKE_RATIO;
     const margin = w * ARROW_MARGIN_PCT;
     const yTop = (bannerH - chevronH) / 2;
-    const notch = chevronW * CHEVRON_NOTCH; // inner notch x position (from back)
 
-    doc.setFillColor(0, 0, 0);
+    doc.setDrawColor(0, 0, 0);
+    doc.setLineWidth(stroke);
+    doc.setLineCap('butt');
     doc.setLineJoin('miter');
+    doc.setLineMiterLimit(10);
 
     if (arrow === 'right') {
-      // Tip on the right; back on the left. Start at (0,0) inside chevron box.
+      // Two segments meeting at the right-middle tip.
       const xLeft = w - margin - chevronW;
       doc.lines(
-        [
-          [chevronW, chevronH / 2],   // → tip (right-middle)
-          [-chevronW, chevronH / 2],  // → bottom-back-outer (0, H)
-          [notch, -chevronH / 2],     // → inner notch (notch, H/2)
-        ],
+        [[chevronW, chevronH / 2], [-chevronW, chevronH / 2]],
         xLeft,
         yTop,
         [1, 1],
-        'F',
-        true
+        'S'
       );
     } else {
-      // Tip on the left; back on the right. Start at (W,0) inside chevron box.
+      // Two segments meeting at the left-middle tip.
       const xLeft = margin;
       doc.lines(
-        [
-          [-chevronW, chevronH / 2],  // → tip (left-middle)
-          [chevronW, chevronH / 2],   // → bottom-back-outer (W, H)
-          [-notch, -chevronH / 2],    // → inner notch (W-notch, H/2)
-        ],
+        [[-chevronW, chevronH / 2], [chevronW, chevronH / 2]],
         xLeft + chevronW,
         yTop,
         [1, 1],
-        'F',
-        true
+        'S'
       );
     }
   }

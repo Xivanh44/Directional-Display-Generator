@@ -4,8 +4,8 @@ import {
   BANNER_HEIGHT_PCT,
   ARROW_HEIGHT_PCT,
   ARROW_WIDTH_RATIO,
+  ARROW_STROKE_RATIO,
   ARROW_MARGIN_PCT,
-  CHEVRON_NOTCH,
 } from '@/lib/pdf-generator';
 
 interface PDFPreviewProps {
@@ -215,21 +215,32 @@ function LogoCell({ src }: { src: string }) {
 }
 
 function ChevronSvg({ direction }: { direction: 'left' | 'right' }) {
-  // Solid wayfinding chevron ">" — 4 vertices, no tail, sharp corners.
+  // Chevron in the style of Unicode U+276F (❯): two thick diagonal strokes
+  // meeting at a sharp mitered vertex, square ends, no tail.
   const W = 100 * ARROW_WIDTH_RATIO;
   const H = 100;
-  const notch = W * CHEVRON_NOTCH;
+  const stroke = H * ARROW_STROKE_RATIO;
+  // Inset by half the stroke so the visible shape stays inside the viewBox.
+  const inset = stroke / 2;
   const path =
     direction === 'right'
-      ? `M 0,0 L ${W},${H / 2} L 0,${H} L ${notch},${H / 2} Z`
-      : `M ${W},0 L 0,${H / 2} L ${W},${H} L ${W - notch},${H / 2} Z`;
+      ? `M ${inset},${inset} L ${W - inset},${H / 2} L ${inset},${H - inset}`
+      : `M ${W - inset},${inset} L ${inset},${H / 2} L ${W - inset},${H - inset}`;
   return (
     <svg
       viewBox={`0 0 ${W} ${H}`}
       className="w-full h-full"
       preserveAspectRatio="xMidYMid meet"
     >
-      <path d={path} fill="#000000" />
+      <path
+        d={path}
+        fill="none"
+        stroke="#000000"
+        strokeWidth={stroke}
+        strokeLinecap="butt"
+        strokeLinejoin="miter"
+        strokeMiterlimit={10}
+      />
     </svg>
   );
 }
