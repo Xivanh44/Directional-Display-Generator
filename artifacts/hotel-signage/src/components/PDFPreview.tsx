@@ -33,7 +33,8 @@ export function PDFPreview({ state, allLogos }: PDFPreviewProps) {
     if (count === 2) return "grid-cols-2 grid-rows-1";
     if (count === 4) return "grid-cols-2 grid-rows-2";
     if (count === 6) return "grid-cols-3 grid-rows-2";
-    return ""; // handled custom for 3 and 5
+    if (count === 8) return "grid-cols-4 grid-rows-2";
+    return ""; // handled custom for 3, 5, 7
   };
 
   return (
@@ -97,7 +98,7 @@ export function PDFPreview({ state, allLogos }: PDFPreviewProps) {
           <div className="flex-1 bg-white relative p-[5%] overflow-hidden min-h-0">
             {count === 0 ? (
               <div className="w-full h-full flex items-center justify-center border-2 border-dashed border-gray-200 rounded-xl">
-                <span className="text-gray-400 font-medium">Sélectionnez 1 à 6 logos</span>
+                <span className="text-gray-400 font-medium">Sélectionnez 1 à 8 logos</span>
               </div>
             ) : count === 3 ? (
               <div className="w-full h-full flex flex-col gap-4">
@@ -119,14 +120,27 @@ export function PDFPreview({ state, allLogos }: PDFPreviewProps) {
                     <LogoCell key={id} src={allLogos[id]} />
                   ))}
                 </div>
-                <div className="flex-1 grid grid-cols-3 gap-4">
-                  <div />
-                  <div className="col-span-2 grid grid-cols-2 gap-4 -ml-[50%] mr-[50%] w-[150%]">
-                     {selectedLogos.slice(3,5).map(id => (
-                      <LogoCell key={id} src={allLogos[id]} />
-                    ))}
-                  </div>
-                  <div />
+                <div className="flex-1 min-h-0 flex items-stretch justify-center gap-4">
+                  {selectedLogos.slice(3, 5).map((id) => (
+                    <div key={id} className="flex-1 min-w-0 max-w-[33.33%]">
+                      <LogoCell src={allLogos[id]} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : count === 7 ? (
+              <div className="w-full h-full flex flex-col gap-4">
+                <div className="flex-1 min-h-0 grid grid-cols-4 gap-4">
+                  {selectedLogos.slice(0, 4).map((id) => (
+                    <LogoCell key={id} src={allLogos[id]} />
+                  ))}
+                </div>
+                <div className="flex-1 min-h-0 flex items-stretch justify-center gap-4">
+                  {selectedLogos.slice(4, 7).map((id) => (
+                    <div key={id} className="flex-1 min-w-0 max-w-[25%]">
+                      <LogoCell src={allLogos[id]} />
+                    </div>
+                  ))}
                 </div>
               </div>
             ) : (

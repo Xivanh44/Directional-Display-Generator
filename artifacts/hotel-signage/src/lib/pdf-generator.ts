@@ -162,6 +162,8 @@ function renderPage(
     else if (count === 4) { cols = 2; rows = 2; }
     else if (count === 5) { cols = 3; rows = 2; }
     else if (count === 6) { cols = 3; rows = 2; }
+    else if (count === 7) { cols = 4; rows = 2; }
+    else if (count === 8) { cols = 4; rows = 2; }
 
     const spacing = 10;
     const cellW = (workAreaW - (spacing * (cols - 1))) / cols;
@@ -176,18 +178,21 @@ function renderPage(
       const c = i % cols;
 
       let actualColsInRow = cols;
-      if (count === 5 && r === 1) {
-        actualColsInRow = 2;
-      } else if (count === 3 && r === 1) {
+      if (count === 3 && r === 1) {
         actualColsInRow = 1;
+      } else if (count === 5 && r === 1) {
+        actualColsInRow = 2;
+      } else if (count === 7 && r === 1) {
+        actualColsInRow = 3;
       }
 
       const rowWidth = (actualColsInRow * cellW) + ((actualColsInRow - 1) * spacing);
       const startX = workAreaX + (workAreaW - rowWidth) / 2;
 
       let currentC = c;
-      if (count === 5 && r === 1) currentC = i - 3;
-      else if (count === 3 && r === 1) currentC = 0;
+      if (count === 3 && r === 1) currentC = 0;
+      else if (count === 5 && r === 1) currentC = i - 3;
+      else if (count === 7 && r === 1) currentC = i - 4;
 
       const cellX = startX + currentC * (cellW + spacing);
       const cellY = workAreaY + r * (cellH + spacing);

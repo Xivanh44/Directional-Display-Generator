@@ -187,7 +187,7 @@ function Main() {
       if (prev.selectedLogos.includes(id)) {
         return { ...prev, selectedLogos: prev.selectedLogos.filter(l => l !== id) };
       }
-      if (prev.selectedLogos.length >= 6) return prev;
+      if (prev.selectedLogos.length >= 8) return prev;
       return { ...prev, selectedLogos: [...prev.selectedLogos, id] };
     });
   };
@@ -420,7 +420,7 @@ function Main() {
           {/* Logos */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Label className="text-sm font-medium">Logos ({state.selectedLogos.length}/6)</Label>
+              <Label className="text-sm font-medium">Logos ({state.selectedLogos.length}/8)</Label>
               <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} className="h-8 text-xs">
                 <Upload className="w-4 h-4 mr-2" />
                 Ajouter
