@@ -439,7 +439,7 @@ function Main() {
             <div className="grid grid-cols-3 gap-2">
               {Object.entries(logos).map(([id, src]) => {
                 const isSelected = state.selectedLogos.includes(id);
-                const disabled = !isSelected && state.selectedLogos.length >= 6;
+                const disabled = !isSelected && state.selectedLogos.length >= 8;
                 return (
                   <div key={id} className="relative group aspect-square rounded-md border bg-white p-2">
                     <button 
