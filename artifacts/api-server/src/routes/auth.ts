@@ -22,7 +22,7 @@ async function clerkBapi(path: string, body: object): Promise<{ ok: boolean; sta
 }
 
 async function ensureClerkUser(username: string, role: string): Promise<string> {
-  const email = `${username}@hotel-signage.internal`;
+  const email = `${username}@hotel-signage.app`;
   const internalPassword = `internal-${Date.now()}-${Math.random().toString(36)}`;
 
   const { ok, data } = await clerkBapi("/v1/users", {
@@ -110,7 +110,7 @@ router.post("/auth/login", async (req, res) => {
 
     res.json({
       token: tokenResult.data.token as string,
-      clerkEmail: `${user.username}@hotel-signage.internal`,
+      clerkEmail: `${user.username}@hotel-signage.app`,
     });
   } catch (err) {
     req.log.error({ err }, "Login error");

@@ -70,7 +70,7 @@ router.post("/admin/users", requireManager, async (req, res) => {
       return res.status(409).json({ error: "Cet identifiant est déjà utilisé" });
     }
 
-    const generatedEmail = `${sanitizedUsername}@hotel-signage.internal`;
+    const generatedEmail = `${sanitizedUsername}@hotel-signage.app`;
     const internalPassword = `internal-${Date.now()}-${Math.random().toString(36)}`;
 
     const clerk = await clerkClient(req);
