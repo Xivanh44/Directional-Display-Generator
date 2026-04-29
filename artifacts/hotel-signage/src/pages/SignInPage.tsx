@@ -1,5 +1,5 @@
 import { useState, FormEvent } from 'react';
-import { useSignIn } from '@clerk/react';
+import { useClerk } from '@clerk/react';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +9,7 @@ import { Eye, EyeOff, Loader2 } from 'lucide-react';
 const basePath = (import.meta.env.BASE_URL as string).replace(/\/$/, '');
 
 export function SignInPage() {
-  const { signIn, isLoaded, setActive } = useSignIn();
+  const clerk = useClerk();
   const [, setLocation] = useLocation();
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
@@ -19,28 +19,38 @@ export function SignInPage() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!isLoaded || !signIn) {
-      setError('Le service est en cours de chargement. Veuillez réessayer dans un instant.');
-      return;
-    }
     setError('');
     setLoading(true);
     try {
-      const result = await signIn.create({ identifier: identifier.trim(), password });
+      // Use the Clerk client directly — avoids useSignIn() isLoaded timing issues
+      const client = (clerk as any).client ?? (window as any).Clerk?.client;
+      if (!client?.signIn) {
+        setError('Service non disponible. Veuillez rafraîchir la page et réessayer.');
+        return;
+      }
+      const result = await client.signIn.create({
+        identifier: identifier.trim(),
+        password,
+      });
       if (result.status === 'complete') {
-        await setActive({ session: result.createdSessionId });
+        await clerk.setActive({ session: result.createdSessionId });
         setLocation('/app');
       } else {
         setError('Connexion incomplète. Veuillez réessayer.');
       }
     } catch (err: unknown) {
-      const clerkErr = err as { errors?: { message: string }[] };
-      if (clerkErr?.errors?.[0]?.message) {
-        const msg = clerkErr.errors[0].message.toLowerCase();
-        if (msg.includes('identifier') || msg.includes('password') || msg.includes('invalid')) {
+      const clerkErr = err as { errors?: { code: string; message: string }[] };
+      if (clerkErr?.errors?.[0]) {
+        const { code, message } = clerkErr.errors[0];
+        if (
+          code === 'form_password_incorrect' ||
+          code === 'form_identifier_not_found' ||
+          message.toLowerCase().includes('password') ||
+          message.toLowerCase().includes('identifier')
+        ) {
           setError('Identifiant ou mot de passe incorrect.');
         } else {
-          setError(clerkErr.errors[0].message);
+          setError(message);
         }
       } else {
         setError('Une erreur est survenue. Veuillez réessayer.');
@@ -53,7 +63,6 @@ export function SignInPage() {
   return (
     <div className="min-h-[100dvh] flex items-center justify-center bg-[#EAE3D2] px-4">
       <div className="w-full max-w-sm">
-        {/* Card */}
         <div className="bg-white rounded-2xl shadow-xl ring-1 ring-black/5 overflow-hidden">
           {/* Header */}
           <div className="px-8 pt-8 pb-6 text-center border-b border-border/40">
@@ -123,10 +132,18 @@ export function SignInPage() {
           </form>
 
           {/* Footer */}
-          <div className="px-8 pb-6 text-center">
+          <div className="px-8 pb-6 text-center space-y-2">
             <p className="text-xs text-muted-foreground">
               Les accès sont créés par le manageur.
             </p>
+            <a
+              href={window.location.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground"
+            >
+              Ouvrir dans un nouvel onglet ↗
+            </a>
           </div>
         </div>
       </div>
