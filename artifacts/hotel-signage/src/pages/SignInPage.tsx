@@ -28,7 +28,7 @@ export function SignInPage() {
         body: JSON.stringify({ username: identifier.trim().toLowerCase(), password }),
       });
 
-      const data = await res.json() as { token?: string; error?: string };
+      const data = await res.json() as { token?: string; clerkEmail?: string; error?: string };
 
       if (!res.ok) {
         setError(data.error ?? 'Identifiant ou mot de passe incorrect.');
@@ -49,15 +49,24 @@ export function SignInPage() {
         return;
       }
 
-      const result = await clerkSignIn.create({ strategy: 'ticket', ticket: data.token });
+      // Step 1: identify the user so Clerk accepts the ticket strategy
+      let attempt = await clerkSignIn.create({ identifier: data.clerkEmail });
 
-      if (result.status === 'complete') {
-        await clerkSetActive({ session: result.createdSessionId });
+      // Step 2: if identifier was accepted, attempt the ticket as first factor
+      if (attempt.status === 'needs_first_factor') {
+        attempt = await clerkSignIn.attemptFirstFactor({ strategy: 'ticket', ticket: data.token });
+      } else if (attempt.status !== 'complete') {
+        // Fallback: try direct ticket creation (works on some Clerk configs)
+        attempt = await clerkSignIn.create({ strategy: 'ticket', ticket: data.token });
+      }
+
+      if (attempt.status === 'complete') {
+        await clerkSetActive({ session: attempt.createdSessionId });
         setLocation('/app');
-      } else if (result.status === 'needs_second_factor') {
+      } else if (attempt.status === 'needs_second_factor') {
         setError('Authentification à deux facteurs non supportée.');
       } else {
-        setError(`Connexion incomplète (status: ${result.status}). Veuillez réessayer.`);
+        setError(`Connexion incomplète. Veuillez réessayer.`);
       }
     } catch (err: unknown) {
       const clerkErr = err as { errors?: { code: string; message: string }[] };
