@@ -78,12 +78,7 @@ export function PDFPreview({ state, allLogos }: PDFPreviewProps) {
                 }}
               >
                 {state.customArrowChar ? (
-                  <span
-                    className="leading-none select-none"
-                    style={{ fontSize: `${ARROW_HEIGHT_PCT * arrowScale * 100}%`, transform: 'scaleX(-1)', display: 'inline-block' }}
-                  >
-                    {state.customArrowChar}
-                  </span>
+                  <AutoFitChar char={state.customArrowChar} flip />
                 ) : state.customArrowDataUrl ? (
                   <img
                     src={state.customArrowDataUrl}
@@ -108,12 +103,7 @@ export function PDFPreview({ state, allLogos }: PDFPreviewProps) {
                 }}
               >
                 {state.customArrowChar ? (
-                  <span
-                    className="leading-none select-none"
-                    style={{ fontSize: `${ARROW_HEIGHT_PCT * arrowScale * 100}%` }}
-                  >
-                    {state.customArrowChar}
-                  </span>
+                  <AutoFitChar char={state.customArrowChar} />
                 ) : state.customArrowDataUrl ? (
                   <img
                     src={state.customArrowDataUrl}
@@ -197,6 +187,43 @@ export function PDFPreview({ state, allLogos }: PDFPreviewProps) {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function AutoFitChar({ char, flip }: { char: string; flip?: boolean }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [fontSize, setFontSize] = useState(16);
+
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const fit = () => {
+      const ch = container.clientHeight;
+      if (ch > 0) setFontSize(ch * 0.88);
+    };
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(container);
+    return () => ro.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={containerRef}
+      className="w-full h-full flex items-center justify-center overflow-hidden"
+    >
+      <span
+        style={{
+          fontSize: `${fontSize}px`,
+          lineHeight: 1,
+          display: 'inline-block',
+          transform: flip ? 'scaleX(-1)' : undefined,
+          userSelect: 'none',
+        }}
+      >
+        {char}
+      </span>
     </div>
   );
 }
