@@ -51,13 +51,22 @@ export function PDFPreview({ state, allLogos }: PDFPreviewProps) {
       >
         <div className="absolute inset-0 flex flex-col">
           {/* Banner */}
-          <div 
+          <div
             className="w-full relative flex items-center justify-center overflow-hidden"
-            style={{ 
+            style={{
               height: `${BANNER_HEIGHT_PCT * 100}%`,
-              backgroundColor: '#EAE3D2'
+              backgroundColor: state.customBannerDataUrl ? undefined : '#EAE3D2',
             }}
           >
+            {/* Custom banner background image */}
+            {state.customBannerDataUrl && (
+              <img
+                src={state.customBannerDataUrl}
+                className="absolute inset-0 w-full h-full object-cover"
+                alt=""
+              />
+            )}
+
             {arrow === 'left' && (
               <div
                 className="absolute flex items-center justify-start"
@@ -65,9 +74,17 @@ export function PDFPreview({ state, allLogos }: PDFPreviewProps) {
                   left: `${ARROW_MARGIN_PCT * 100}%`,
                   height: `${ARROW_HEIGHT_PCT * arrowScale * 100}%`,
                   aspectRatio: `${ARROW_WIDTH_RATIO}`,
+                  zIndex: 1,
                 }}
               >
-                {state.customArrowDataUrl ? (
+                {state.customArrowChar ? (
+                  <span
+                    className="leading-none select-none"
+                    style={{ fontSize: `${ARROW_HEIGHT_PCT * arrowScale * 100}%`, transform: 'scaleX(-1)', display: 'inline-block' }}
+                  >
+                    {state.customArrowChar}
+                  </span>
+                ) : state.customArrowDataUrl ? (
                   <img
                     src={state.customArrowDataUrl}
                     className="w-full h-full object-contain"
@@ -87,9 +104,17 @@ export function PDFPreview({ state, allLogos }: PDFPreviewProps) {
                   right: `${ARROW_MARGIN_PCT * 100}%`,
                   height: `${ARROW_HEIGHT_PCT * arrowScale * 100}%`,
                   aspectRatio: `${ARROW_WIDTH_RATIO}`,
+                  zIndex: 1,
                 }}
               >
-                {state.customArrowDataUrl ? (
+                {state.customArrowChar ? (
+                  <span
+                    className="leading-none select-none"
+                    style={{ fontSize: `${ARROW_HEIGHT_PCT * arrowScale * 100}%` }}
+                  >
+                    {state.customArrowChar}
+                  </span>
+                ) : state.customArrowDataUrl ? (
                   <img
                     src={state.customArrowDataUrl}
                     className="w-full h-full object-contain"
@@ -106,6 +131,7 @@ export function PDFPreview({ state, allLogos }: PDFPreviewProps) {
               style={{
                 paddingLeft: `${sidePadPct}%`,
                 paddingRight: `${sidePadPct}%`,
+                zIndex: 1,
               }}
             >
               <AutoFitText text={text} font={state.font} />

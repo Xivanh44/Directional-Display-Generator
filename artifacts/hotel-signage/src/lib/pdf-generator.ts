@@ -10,6 +10,8 @@ export interface SignageState {
   selectedLogos: string[];
   font?: string;
   customArrowDataUrl?: string | null;
+  customArrowChar?: string | null;
+  customBannerDataUrl?: string | null;
   arrowScale?: number; // multiplier on ARROW_HEIGHT_PCT, default 1.0
 }
 

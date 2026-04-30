@@ -30,21 +30,53 @@ export async function renderBannerToCanvas(state: SignageState): Promise<HTMLCan
   canvas.height = canvasH;
   const ctx = canvas.getContext('2d')!;
 
-  ctx.fillStyle = BEIGE;
-  ctx.fillRect(0, 0, canvasW, canvasH);
+  // ── Background ──────────────────────────────────────────────────────────────
+  if (state.customBannerDataUrl) {
+    const img = await loadImage(state.customBannerDataUrl);
+    ctx.drawImage(img, 0, 0, canvasW, canvasH);
+  } else {
+    ctx.fillStyle = BEIGE;
+    ctx.fillRect(0, 0, canvasW, canvasH);
+  }
 
+  // ── Arrow ───────────────────────────────────────────────────────────────────
   const scale = state.arrowScale ?? 1;
   const chevronH = canvasH * ARROW_HEIGHT_PCT * scale;
   const chevronW = chevronH * ARROW_WIDTH_RATIO;
   const margin = canvasW * ARROW_MARGIN_PCT;
   const yTop = (canvasH - chevronH) / 2;
+  const yCtr = yTop + chevronH / 2;
 
   if (state.arrow !== 'none') {
-    if (state.customArrowDataUrl) {
+    const isRight = state.arrow === 'right';
+    // Center X of the arrow zone
+    const xCtr = isRight
+      ? canvasW - margin - chevronW / 2
+      : margin + chevronW / 2;
+
+    if (state.customArrowChar) {
+      // ── Character arrow ────────────────────────────────────────────────────
+      ctx.save();
+      const fontSize = chevronH * 0.9;
+      ctx.font = `normal ${fontSize}px serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#000000';
+      if (!isRight) {
+        // Flip horizontally around the character center
+        ctx.translate(xCtr, yCtr);
+        ctx.scale(-1, 1);
+        ctx.fillText(state.customArrowChar, 0, 0);
+      } else {
+        ctx.fillText(state.customArrowChar, xCtr, yCtr);
+      }
+      ctx.restore();
+    } else if (state.customArrowDataUrl) {
+      // ── Image arrow ────────────────────────────────────────────────────────
       const img = await loadImage(state.customArrowDataUrl);
       ctx.save();
-      if (state.arrow === 'left') {
-        ctx.translate(margin + chevronW / 2, yTop + chevronH / 2);
+      if (!isRight) {
+        ctx.translate(xCtr, yCtr);
         ctx.scale(-1, 1);
         ctx.drawImage(img, -chevronW / 2, -chevronH / 2, chevronW, chevronH);
       } else {
@@ -52,6 +84,7 @@ export async function renderBannerToCanvas(state: SignageState): Promise<HTMLCan
       }
       ctx.restore();
     } else {
+      // ── Default chevron ────────────────────────────────────────────────────
       const strokeW = chevronH * ARROW_STROKE_RATIO;
       ctx.strokeStyle = '#000000';
       ctx.lineWidth = strokeW;
@@ -59,21 +92,22 @@ export async function renderBannerToCanvas(state: SignageState): Promise<HTMLCan
       ctx.lineJoin = 'miter';
       ctx.miterLimit = 10;
       ctx.beginPath();
-      if (state.arrow === 'right') {
+      if (isRight) {
         const xLeft = canvasW - margin - chevronW;
         ctx.moveTo(xLeft, yTop);
-        ctx.lineTo(xLeft + chevronW, yTop + chevronH / 2);
+        ctx.lineTo(xLeft + chevronW, yCtr);
         ctx.lineTo(xLeft, yTop + chevronH);
       } else {
         const xRight = margin + chevronW;
         ctx.moveTo(xRight, yTop);
-        ctx.lineTo(xRight - chevronW, yTop + chevronH / 2);
+        ctx.lineTo(xRight - chevronW, yCtr);
         ctx.lineTo(xRight, yTop + chevronH);
       }
       ctx.stroke();
     }
   }
 
+  // ── Text ────────────────────────────────────────────────────────────────────
   if (state.text.trim()) {
     const fontFamily = state.font || 'Arial';
     const arrowSpace = chevronH * ARROW_WIDTH_RATIO + margin;

@@ -185,11 +185,14 @@ function Main() {
     selectedLogos: [],
     font: 'Arial',
     customArrowDataUrl: null,
+    customArrowChar: null,
+    customBannerDataUrl: null,
     arrowScale: 1,
   });
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const arrowInputRef = useRef<HTMLInputElement>(null);
+  const bannerInputRef = useRef<HTMLInputElement>(null);
 
   const a4Items = queue.filter(q => q.item.format === 'A4');
   const a3Items = queue.filter(q => q.item.format === 'A3');
@@ -338,7 +341,18 @@ function Main() {
     const reader = new FileReader();
     reader.onload = (e) => {
       if (e.target?.result) {
-        setState((prev) => ({ ...prev, customArrowDataUrl: e.target!.result as string }));
+        setState((prev) => ({ ...prev, customArrowDataUrl: e.target!.result as string, customArrowChar: null }));
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleBannerFile = (file: File) => {
+    if (!file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      if (e.target?.result) {
+        setState((prev) => ({ ...prev, customBannerDataUrl: e.target!.result as string }));
       }
     };
     reader.readAsDataURL(file);
@@ -474,9 +488,38 @@ function Main() {
                 </div>
               </RadioGroup>
 
-              {/* Custom arrow image — manager only */}
+              {/* Custom arrow — manager only */}
               {isManager && (
-                <div className="pt-1">
+                <div className="pt-1 space-y-2">
+                  {/* Character input */}
+                  <div className="flex items-center gap-2">
+                    <Label className="text-xs text-muted-foreground shrink-0">Caractère</Label>
+                    <Input
+                      value={state.customArrowChar ?? ''}
+                      onChange={(e) => {
+                        const val = [...e.target.value].slice(-1).join(''); // keep last char (supports emoji)
+                        setState((prev) => ({
+                          ...prev,
+                          customArrowChar: val || null,
+                          customArrowDataUrl: val ? null : prev.customArrowDataUrl,
+                        }));
+                      }}
+                      placeholder="ex: ➤ ★ ●"
+                      className="bg-white h-8 text-center text-lg w-24"
+                      maxLength={4}
+                    />
+                    {state.customArrowChar && (
+                      <button
+                        type="button"
+                        onClick={() => setState({ ...state, customArrowChar: null })}
+                        className="text-muted-foreground hover:text-destructive"
+                        title="Effacer"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                  {/* Image upload */}
                   <div className="flex items-center gap-2">
                     <Button
                       type="button"
@@ -486,7 +529,7 @@ function Main() {
                       onClick={() => arrowInputRef.current?.click()}
                     >
                       <Upload className="w-3.5 h-3.5 mr-1.5" />
-                      {state.customArrowDataUrl ? 'Changer la flèche' : 'Flèche personnalisée…'}
+                      {state.customArrowDataUrl ? 'Changer l\'image' : 'Image de flèche…'}
                     </Button>
                     {state.customArrowDataUrl && (
                       <>
@@ -495,7 +538,7 @@ function Main() {
                           type="button"
                           onClick={() => setState({ ...state, customArrowDataUrl: null })}
                           className="text-muted-foreground hover:text-destructive"
-                          title="Supprimer la flèche personnalisée"
+                          title="Supprimer"
                         >
                           <X className="w-3.5 h-3.5" />
                         </button>
@@ -684,6 +727,53 @@ function Main() {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+            )}
+
+            {/* Bandeau personnalisé — manager only */}
+            {isManager && (
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Bandeau personnalisé</Label>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-8 text-xs"
+                    onClick={() => bannerInputRef.current?.click()}
+                  >
+                    <Upload className="w-3.5 h-3.5 mr-1.5" />
+                    {state.customBannerDataUrl ? 'Changer le bandeau' : 'Importer un bandeau…'}
+                  </Button>
+                  {state.customBannerDataUrl && (
+                    <>
+                      <img
+                        src={state.customBannerDataUrl}
+                        className="h-8 rounded border object-cover"
+                        style={{ maxWidth: '120px' }}
+                        alt="bandeau"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setState({ ...state, customBannerDataUrl: null })}
+                        className="text-muted-foreground hover:text-destructive"
+                        title="Supprimer le bandeau personnalisé"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </>
+                  )}
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  L'image remplace le fond beige. Le texte et la flèche restent superposés.
+                </p>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  ref={bannerInputRef}
+                  onChange={(e) => { if (e.target.files?.[0]) handleBannerFile(e.target.files[0]); }}
+                />
               </div>
             )}
 
