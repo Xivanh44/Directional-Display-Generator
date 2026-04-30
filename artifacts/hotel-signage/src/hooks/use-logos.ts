@@ -31,5 +31,9 @@ export function useLogos() {
     });
   };
 
-  return { logos, addLogos, removeLogo };
+  const clearLogos = () => {
+    setLogos(persist({}));
+  };
+
+  return { logos, addLogos, removeLogo, clearLogos };
 }

@@ -173,7 +173,7 @@ function ManagerToggle({
 
 function Main() {
   const { toast } = useToast();
-  const { logos, addLogos, removeLogo } = useLogos();
+  const { logos, addLogos, removeLogo, clearLogos } = useLogos();
   const { customTexts, addCustomText, removeCustomText } = useCustomTexts();
   const [isManager, setIsManager] = useState(false);
   const [pinDialogOpen, setPinDialogOpen] = useState(false);
@@ -689,20 +689,37 @@ function Main() {
 
             {/* Logos */}
             <div className="space-y-3">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-2">
                 <Label className="text-sm font-medium">
                   Logos ({state.selectedLogos.length}/8)
                 </Label>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="h-7 text-xs"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <Upload className="w-3.5 h-3.5 mr-1.5" />
-                  Ajouter
-                </Button>
+                <div className="flex items-center gap-1.5">
+                  {Object.keys(logos).length > 0 && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 text-xs text-muted-foreground hover:text-destructive"
+                      onClick={() => {
+                        clearLogos();
+                        setState(prev => ({ ...prev, selectedLogos: [] }));
+                      }}
+                    >
+                      <Trash2 className="w-3.5 h-3.5 mr-1" />
+                      Vider
+                    </Button>
+                  )}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <Upload className="w-3.5 h-3.5 mr-1.5" />
+                    Ajouter
+                  </Button>
+                </div>
                 <input
                   type="file"
                   accept="image/*"
@@ -768,7 +785,7 @@ function Main() {
                               selectedLogos: prev.selectedLogos.filter(l => l !== id),
                             }));
                           }}
-                          className="absolute top-0.5 right-0.5 bg-background/80 rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground"
+                          className="absolute top-0.5 right-0.5 bg-background/80 rounded-full p-0.5 hover:bg-destructive hover:text-destructive-foreground"
                           title="Supprimer"
                         >
                           <X className="w-2.5 h-2.5" />
@@ -821,25 +838,14 @@ function Main() {
 
           {/* Export actions */}
           <div className="p-6 border-t space-y-2.5">
-            <div className="flex gap-2">
-              <Button
-                className="flex-1"
-                onClick={handleExport}
-                disabled={!state.text.trim()}
-              >
-                <FileDown className="w-4 h-4 mr-2" />
-                Exporter PDF
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                title="Exporter les 3 variantes (gauche, sans, droite)"
-                onClick={handleExportAllVariants}
-                disabled={!state.text.trim()}
-              >
-                <ImageIcon className="w-4 h-4" />
-              </Button>
-            </div>
+            <Button
+              className="w-full"
+              onClick={handleExport}
+              disabled={!state.text.trim()}
+            >
+              <FileDown className="w-4 h-4 mr-2" />
+              Exporter PDF
+            </Button>
 
             {/* PNG export — manager only */}
             {isManager && (
