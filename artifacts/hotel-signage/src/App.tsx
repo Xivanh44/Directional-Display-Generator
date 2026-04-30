@@ -190,9 +190,50 @@ function Main() {
     arrowScale: 1,
   });
   const [queue, setQueue] = useState<QueueItem[]>([]);
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const arrowInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
+
+  // Load manager settings from server on mount
+  useEffect(() => {
+    fetch('/api/settings')
+      .then((r) => r.json())
+      .then((data) => {
+        setState((prev) => ({
+          ...prev,
+          font: data.font ?? prev.font,
+          arrowScale: data.arrowScale ?? prev.arrowScale,
+          customArrowChar: data.customArrowChar ?? null,
+          customArrowDataUrl: data.customArrowDataUrl ?? null,
+          customBannerDataUrl: data.customBannerDataUrl ?? null,
+        }));
+      })
+      .catch(() => { /* silently ignore if API unreachable */ });
+  }, []);
+
+  const saveManagerSettings = async () => {
+    setIsSavingSettings(true);
+    try {
+      const res = await fetch('/api/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          font: state.font,
+          arrowScale: state.arrowScale,
+          customArrowChar: state.customArrowChar,
+          customArrowDataUrl: state.customArrowDataUrl,
+          customBannerDataUrl: state.customBannerDataUrl,
+        }),
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      toast({ title: "Réglages enregistrés", description: "Ces paramètres sont maintenant les valeurs par défaut pour tous les appareils." });
+    } catch {
+      toast({ title: "Erreur", description: "Impossible d'enregistrer les réglages.", variant: "destructive" });
+    } finally {
+      setIsSavingSettings(false);
+    }
+  };
 
   const a4Items = queue.filter(q => q.item.format === 'A4');
   const a3Items = queue.filter(q => q.item.format === 'A3');
@@ -733,7 +774,7 @@ function Main() {
             {/* Bandeau personnalisé — manager only */}
             {isManager && (
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Bandeau personnalisé</Label>
+                <Label className="text-sm font-medium">Bandeau</Label>
                 <div className="flex items-center gap-2">
                   <Button
                     type="button"
@@ -775,6 +816,19 @@ function Main() {
                   onChange={(e) => { if (e.target.files?.[0]) handleBannerFile(e.target.files[0]); }}
                 />
               </div>
+            )}
+
+            {/* Save manager settings — manager only */}
+            {isManager && (
+              <Button
+                type="button"
+                variant="secondary"
+                className="w-full"
+                disabled={isSavingSettings}
+                onClick={saveManagerSettings}
+              >
+                {isSavingSettings ? 'Enregistrement…' : 'Enregistrer les réglages par défaut'}
+              </Button>
             )}
 
             {/* Logos */}
