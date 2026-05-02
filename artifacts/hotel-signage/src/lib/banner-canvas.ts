@@ -9,7 +9,7 @@ import {
 } from './pdf-generator';
 
 const SCALE = 10;
-const BEIGE = '#EAE3D2';
+const BEIGE = '#EDE8D4';
 
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {

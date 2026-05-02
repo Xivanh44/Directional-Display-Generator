@@ -1025,7 +1025,7 @@ function Main() {
               </div>
 
               {queue.length > 0 && (
-                <ScrollArea className="max-h-40">
+                <ScrollArea className="max-h-72">
                   <div className="space-y-1 pr-2">
                     {queue.map((item) => (
                       <div
@@ -1034,14 +1034,27 @@ function Main() {
                       >
                         <button
                           type="button"
-                          className="flex-1 text-left truncate hover:underline"
+                          className="flex-1 text-left min-w-0 hover:underline"
                           onClick={() => loadFromQueue(item.id)}
                           title="Charger cet affichage"
                         >
-                          <span className="font-medium">{item.item.format}</span>{' '}
-                          <span className="text-muted-foreground">
-                            {item.item.text} · {ARROW_LABEL[item.item.arrow]}
-                          </span>
+                          <div className="font-medium truncate">
+                            {item.item.format} · {item.item.text} · {ARROW_LABEL[item.item.arrow]}
+                          </div>
+                          {item.item.selectedLogos.length > 0 && (
+                            <div className="flex items-center gap-1 mt-1 flex-wrap">
+                              {item.item.selectedLogos.map((id) =>
+                                logos[id] ? (
+                                  <img
+                                    key={id}
+                                    src={logos[id]}
+                                    alt=""
+                                    className="h-6 w-6 object-contain rounded border bg-white"
+                                  />
+                                ) : null
+                              )}
+                            </div>
+                          )}
                         </button>
                         <div className="flex items-center gap-1 shrink-0">
                           <button

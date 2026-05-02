@@ -20,7 +20,7 @@ export const FORMAT_DIMS = {
   A3: { w: 420, h: 297 }
 };
 
-export const BANNER_HEIGHT_PCT = 0.22;
+export const BANNER_HEIGHT_PCT = 0.253;
 // Chevron in the style of Unicode U+276F (❯): two thick diagonal strokes
 // meeting at a sharp mitered vertex, square ends, no tail.
 export const ARROW_HEIGHT_PCT = 0.7;   // chevron height / banner height
@@ -39,7 +39,7 @@ export const TEXT_OPTIONS = [
 export type SignageText = typeof TEXT_OPTIONS[number];
 
 const THEME = {
-  beigeRGB: [234, 227, 210],
+  beigeRGB: [237, 232, 212],
 };
 
 interface ImageMeta {

@@ -55,7 +55,7 @@ export function PDFPreview({ state, allLogos }: PDFPreviewProps) {
             className="w-full relative flex items-center justify-center overflow-hidden"
             style={{
               height: `${BANNER_HEIGHT_PCT * 100}%`,
-              backgroundColor: state.customBannerDataUrl ? undefined : '#EAE3D2',
+              backgroundColor: state.customBannerDataUrl ? undefined : '#EDE8D4',
             }}
           >
             {/* Custom banner background image */}
