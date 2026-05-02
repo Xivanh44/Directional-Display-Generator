@@ -60,15 +60,18 @@ export async function renderBannerToCanvas(state: SignageState): Promise<HTMLCan
       const fontSize = chevronH * 0.9;
       ctx.font = `normal ${fontSize}px serif`;
       ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
+      ctx.textBaseline = 'alphabetic';
       ctx.fillStyle = '#000000';
+      // Compute visual center using actual bounding box
+      const cm = ctx.measureText(state.customArrowChar);
+      const charVisualH = cm.actualBoundingBoxAscent + cm.actualBoundingBoxDescent;
+      const charY = (canvasH - charVisualH) / 2 + cm.actualBoundingBoxAscent;
       if (!isRight) {
-        // Flip horizontally around the character center
-        ctx.translate(xCtr, yCtr);
+        ctx.translate(xCtr, charY);
         ctx.scale(-1, 1);
         ctx.fillText(state.customArrowChar, 0, 0);
       } else {
-        ctx.fillText(state.customArrowChar, xCtr, yCtr);
+        ctx.fillText(state.customArrowChar, xCtr, charY);
       }
       ctx.restore();
     } else if (state.customArrowDataUrl) {
@@ -139,8 +142,12 @@ export async function renderBannerToCanvas(state: SignageState): Promise<HTMLCan
     ctx.font = `normal ${best}px "${fontFamily}"`;
     ctx.fillStyle = '#000000';
     ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(state.text, canvasW / 2, canvasH / 2);
+    ctx.textBaseline = 'alphabetic';
+    // Center on actual visual bounds (not em-box which skews text high)
+    const m = ctx.measureText(state.text);
+    const visualH = m.actualBoundingBoxAscent + m.actualBoundingBoxDescent;
+    const textY = (canvasH - visualH) / 2 + m.actualBoundingBoxAscent;
+    ctx.fillText(state.text, canvasW / 2, textY);
   }
 
   return canvas;
