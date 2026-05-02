@@ -1025,8 +1025,8 @@ function Main() {
               </div>
 
               {queue.length > 0 && (
-                <ScrollArea className="max-h-72">
-                  <div className="space-y-1 pr-2">
+                <ScrollArea className="h-52 rounded border border-border/40 bg-background/40">
+                  <div className="space-y-1 p-2">
                     {queue.map((item) => (
                       <div
                         key={item.id}
