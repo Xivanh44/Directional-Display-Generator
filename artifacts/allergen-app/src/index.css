@@ -203,15 +203,17 @@
 
 /* Print styles */
 @page {
-  size: A4 landscape;
-  margin: 10mm 8mm;
+  size: A4 portrait;
+  margin: 8mm 6mm;
 }
 
 @media print {
-  body {
+  html, body {
+    width: 210mm;
+    height: 297mm;
     background: white !important;
     color: black !important;
-    font-size: 8pt;
+    font-size: 7pt;
   }
   .no-print {
     display: none !important;
@@ -219,10 +221,49 @@
   .print-page {
     width: 100%;
     margin: 0;
-    padding: 0;
+    padding: 4px;
+    box-sizing: border-box;
+  }
+  /* Table fills full width and never scrolls */
+  .allergen-table-wrapper {
+    overflow: visible !important;
+    width: 100%;
+  }
+  table.allergen-table {
+    width: 100% !important;
+    table-layout: fixed !important;
+    font-size: 7pt !important;
+    border-collapse: collapse !important;
+  }
+  /* Column widths for A4 portrait */
+  table.allergen-table col.col-num {
+    width: 18pt !important;
+  }
+  table.allergen-table col.col-name {
+    width: 110pt !important;
+  }
+  table.allergen-table col.col-allergen {
+    width: auto !important;
+  }
+  /* Row height */
+  table.allergen-table td, table.allergen-table th {
+    padding: 1pt 1pt !important;
+  }
+  /* Rotated header height */
+  table.allergen-table .allergen-header-cell {
+    height: 56pt !important;
+    font-size: 6.5pt !important;
   }
   table {
     page-break-inside: avoid;
+  }
+  /* Hide edit inputs in print — show plain text */
+  input[data-print="ingredient"] {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    font-size: 7pt !important;
   }
 }
 

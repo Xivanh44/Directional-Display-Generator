@@ -267,17 +267,17 @@ export default function AllergenForm() {
         </div>
 
         {/* Allergen Table */}
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto allergen-table-wrapper">
           <table
-            className="w-full border-collapse text-xs"
+            className="w-full border-collapse text-xs allergen-table"
             style={{ tableLayout: "fixed" }}
             data-testid="table-allergens"
           >
             <colgroup>
-              <col style={{ width: "28px" }} />
-              <col style={{ width: "200px" }} />
+              <col className="col-num" style={{ width: "28px" }} />
+              <col className="col-name" style={{ width: "200px" }} />
               {ALLERGENS.map((a) => (
-                <col key={a.key} style={{ width: "46px" }} />
+                <col key={a.key} className="col-allergen" style={{ width: "46px" }} />
               ))}
               <col style={{ width: "28px" }} className="no-print" />
             </colgroup>
@@ -295,6 +295,7 @@ export default function AllergenForm() {
                     className="border border-border bg-primary text-primary-foreground text-center py-0 font-bold"
                   >
                     <div
+                      className="allergen-header-cell"
                       style={{
                         writingMode: "vertical-rl",
                         transform: "rotate(180deg)",
