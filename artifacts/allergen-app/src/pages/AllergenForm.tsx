@@ -1,7 +1,6 @@
 import { useState, useCallback, useRef } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Printer, Settings, Plus, Minus } from "lucide-react";
 import IngredientAutocomplete from "@/components/IngredientAutocomplete";
@@ -16,7 +15,7 @@ const MAX_ROWS = 50;
 
 const ALLERGENS = [
   { key: "lait", label: "Lait et lactose" },
-  { key: "cereales", label: "Céréales (gluten)" },
+  { key: "cereales", label: "Céréales contenant du gluten" },
   { key: "fruits_coque", label: "Fruits à coque" },
   { key: "poisson", label: "Poisson" },
   { key: "mollusques", label: "Mollusques" },
@@ -24,9 +23,9 @@ const ALLERGENS = [
   { key: "celeri", label: "Céleri" },
   { key: "oeufs", label: "Œufs" },
   { key: "moutarde", label: "Moutarde" },
-  { key: "sesame", label: "Sésame" },
+  { key: "sesame", label: "Graines de sésame" },
   { key: "soja", label: "Soja" },
-  { key: "sulfites", label: "Sulfites*" },
+  { key: "sulfites", label: "Anhydride sulfureux et sulfites" },
   { key: "lupin", label: "Lupin" },
   { key: "arachide", label: "Arachide" },
   { key: "aucun", label: "Aucun" },
@@ -64,13 +63,14 @@ function emptyRow(): TableRow {
 
 export default function AllergenForm() {
   const [, setLocation] = useLocation();
-  const { toast } = useToast();
+  const { toast: _toast } = useToast();
   const { login } = useManagerAuth();
+  const [eventType, setEventType] = useState("");
   const [eventName, setEventName] = useState("");
   const [eventDate, setEventDate] = useState("");
   const [numRows, setNumRows] = useState(DEFAULT_ROWS);
   const [rows, setRows] = useState<TableRow[]>(() =>
-    Array.from({ length: DEFAULT_ROWS }, emptyRow)
+    Array.from({ length: MAX_ROWS }, emptyRow)
   );
   const [pinOpen, setPinOpen] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
@@ -133,13 +133,11 @@ export default function AllergenForm() {
   const addRow = () => {
     if (numRows >= MAX_ROWS) return;
     setNumRows((n) => n + 1);
-    setRows((prev) => [...prev, emptyRow()]);
   };
 
   const removeRow = () => {
     if (numRows <= MIN_ROWS) return;
     setNumRows((n) => n - 1);
-    setRows((prev) => prev.slice(0, -1));
   };
 
   const handlePrint = () => {
@@ -162,7 +160,7 @@ export default function AllergenForm() {
         day: "2-digit",
         month: "long",
         year: "numeric",
-      });
+      }).toUpperCase();
     } catch {
       return d;
     }
@@ -170,7 +168,7 @@ export default function AllergenForm() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Toolbar - hidden on print */}
+      {/* Toolbar — masquée à l'impression */}
       <div className="no-print bg-card border-b border-border px-4 py-2 flex items-center justify-between sticky top-0 z-10 shadow-xs">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-muted-foreground">Allergènes Cocktail</span>
@@ -219,80 +217,98 @@ export default function AllergenForm() {
         </div>
       </div>
 
-      {/* Main printable area */}
+      {/* Zone imprimable */}
       <div ref={printRef} className="print-page p-4">
-        {/* Header */}
-        <div className="flex items-start justify-between mb-3">
-          <div className="text-center flex-1">
-            <h1 className="text-xl font-bold uppercase tracking-wide text-foreground">
-              ALLERGÈNES À DÉCLARATION OBLIGATOIRE
-            </h1>
-            {/* Event info - screen */}
-            <div className="mt-2 flex items-center justify-center gap-6 no-print">
-              <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-muted-foreground whitespace-nowrap">
-                  Événement :
-                </label>
-                <Input
-                  value={eventName}
-                  onChange={(e) => setEventName(e.target.value)}
-                  placeholder="Nom de l'événement"
-                  className="w-48 h-7 text-sm"
-                  data-testid="input-event-name"
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-muted-foreground">Date :</label>
-                <Input
-                  type="date"
-                  value={eventDate}
-                  onChange={(e) => setEventDate(e.target.value)}
-                  className="w-36 h-7 text-sm"
-                  data-testid="input-event-date"
-                />
-              </div>
-            </div>
-            {/* Print-only event info */}
-            <div className="hidden print:block mt-1 text-sm">
-              {eventName && <span className="mr-4">Événement : {eventName}</span>}
-              {eventDate && <span>Date : {formatDate(eventDate)}</span>}
-            </div>
-          </div>
+
+        {/* ── En-tête : ALLERGÈNES + logo ── */}
+        <div className="flex items-center justify-between mb-1">
+          <h1 className="text-5xl font-black uppercase tracking-tight" style={{ color: "hsl(var(--primary))", letterSpacing: "-0.02em" }}>
+            ALLERGÈNES
+          </h1>
           <img
             src={`${import.meta.env.BASE_URL}westotel-logo.png`}
-            alt="Westotel Nantes Atlantique"
-            className="h-16 object-contain ml-4 flex-shrink-0"
+            alt="Westotel"
+            className="h-14 object-contain"
             data-testid="img-logo"
           />
         </div>
 
-        {/* Allergen Table */}
+        {/* ── Sous-en-tête : 3 champs ── */}
+        <div className="grid grid-cols-3 border border-primary text-sm mb-2" style={{ borderWidth: "1.5px" }}>
+          {/* Champ 1 : type d'événement */}
+          <div className="border-r border-primary px-2 py-1" style={{ borderRightWidth: "1.5px" }}>
+            <input
+              value={eventType}
+              onChange={(e) => setEventType(e.target.value)}
+              placeholder="Ex : Dînatoire 16 pièces"
+              className="subheader-input w-full bg-transparent font-semibold text-foreground outline-none placeholder:text-muted-foreground/50 text-sm"
+              data-testid="input-event-type"
+            />
+          </div>
+          {/* Champ 2 : nom de la salle / événement */}
+          <div className="border-r border-primary px-2 py-1 text-center" style={{ borderRightWidth: "1.5px" }}>
+            <input
+              value={eventName}
+              onChange={(e) => setEventName(e.target.value)}
+              placeholder="Nom de la salle"
+              className="subheader-input w-full bg-transparent font-bold text-foreground outline-none placeholder:text-muted-foreground/50 text-sm text-center uppercase"
+              data-testid="input-event-name"
+            />
+          </div>
+          {/* Champ 3 : date */}
+          <div className="px-2 py-1 text-right">
+            <span className="font-semibold text-foreground text-sm no-print">
+              Le{" "}
+              <input
+                type="date"
+                value={eventDate}
+                onChange={(e) => setEventDate(e.target.value)}
+                className="subheader-input bg-transparent font-semibold text-foreground outline-none text-sm"
+                data-testid="input-event-date"
+              />
+            </span>
+            <span className="hidden print:block font-semibold text-sm">
+              {eventDate ? `Le ${formatDate(eventDate)}` : ""}
+            </span>
+          </div>
+        </div>
+
+        {/* ── Tableau ── */}
         <div className="overflow-x-auto allergen-table-wrapper">
           <table
-            className="w-full border-collapse text-xs allergen-table"
-            style={{ tableLayout: "fixed" }}
+            className="w-full border-collapse allergen-table"
+            style={{ tableLayout: "fixed", fontSize: "10px" }}
             data-testid="table-allergens"
           >
             <colgroup>
-              <col className="col-num" style={{ width: "28px" }} />
-              <col className="col-name" style={{ width: "200px" }} />
+              <col className="col-name" style={{ width: "180px" }} />
               {ALLERGENS.map((a) => (
-                <col key={a.key} className="col-allergen" style={{ width: "46px" }} />
+                <col key={a.key} className="col-allergen" style={{ width: "44px" }} />
               ))}
               <col style={{ width: "28px" }} className="no-print" />
             </colgroup>
+
             <thead>
               <tr>
-                <th className="border border-border bg-primary text-primary-foreground text-center py-1 text-[9px] font-bold align-bottom pb-2">
-                  N°
+                {/* En-tête première colonne */}
+                <th
+                  className="border border-primary text-center font-black align-middle px-1 py-1"
+                  style={{
+                    backgroundColor: "hsl(var(--primary))",
+                    color: "white",
+                    fontSize: "9px",
+                    lineHeight: 1.25,
+                    verticalAlign: "middle",
+                  }}
+                >
+                  ALLERGÈNES À<br />DÉCLARATION<br />OBLIGATOIRE
                 </th>
-                <th className="border border-border bg-primary text-primary-foreground text-center py-1 text-[9px] font-bold align-bottom pb-2">
-                  Désignation de la pièce cocktail
-                </th>
+                {/* En-têtes allergènes (texte vertical) */}
                 {ALLERGENS.map((a) => (
                   <th
                     key={a.key}
-                    className="border border-border bg-primary text-primary-foreground text-center py-0 font-bold"
+                    className="border border-primary text-center py-0 font-bold"
+                    style={{ backgroundColor: "hsl(var(--primary))", padding: 0 }}
                   >
                     <div
                       className="allergen-header-cell"
@@ -300,33 +316,37 @@ export default function AllergenForm() {
                         writingMode: "vertical-rl",
                         transform: "rotate(180deg)",
                         fontSize: "8px",
-                        lineHeight: 1.1,
+                        lineHeight: 1.15,
                         padding: "4px 2px",
-                        height: "72px",
+                        height: "76px",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        whiteSpace: "nowrap",
+                        whiteSpace: "normal",
                         color: "white",
+                        textAlign: "center",
+                        wordBreak: "break-word",
+                        width: "100%",
                       }}
                     >
                       {a.label}
                     </div>
                   </th>
                 ))}
-                <th className="border border-border bg-primary text-primary-foreground text-center text-[8px] no-print" />
+                <th
+                  className="border border-primary no-print"
+                  style={{ backgroundColor: "hsl(var(--primary))" }}
+                />
               </tr>
             </thead>
+
             <tbody>
               {rows.slice(0, numRows).map((row, i) => (
                 <tr
                   key={i}
-                  className={i % 2 === 0 ? "bg-background" : "bg-muted/30"}
+                  className="bg-white"
                   data-testid={`row-ingredient-${i}`}
                 >
-                  <td className="border border-border text-center font-medium text-muted-foreground py-0.5 text-xs">
-                    {i + 1}
-                  </td>
                   <td className="border border-border py-0 px-0">
                     <IngredientAutocomplete
                       value={row.name}
@@ -339,9 +359,10 @@ export default function AllergenForm() {
                     <td
                       key={a.key}
                       className="border border-border text-center font-bold py-0.5"
+                      style={{ fontSize: "11px" }}
                     >
                       {row.allergens[a.key] ? (
-                        <span className="text-destructive font-bold text-sm">x</span>
+                        <span className="font-bold" style={{ color: "hsl(var(--foreground))" }}>X</span>
                       ) : null}
                     </td>
                   ))}
@@ -363,8 +384,8 @@ export default function AllergenForm() {
           </table>
         </div>
 
-        {/* Footer */}
-        <div className="mt-3 space-y-0.5 text-[8.5px] text-muted-foreground border-t border-border pt-2">
+        {/* ── Pied de page ── */}
+        <div className="mt-2 space-y-0.5 border-t border-border pt-1" style={{ fontSize: "7px", color: "hsl(var(--muted-foreground))" }}>
           <p className="font-semibold">Légende x : Présence</p>
           <p>
             *Anhydride sulfureux et sulfites en concentration de plus de 10mg/kg

@@ -224,6 +224,17 @@
     padding: 4px;
     box-sizing: border-box;
   }
+  /* Sub-header inputs look like plain text */
+  .subheader-input {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    font-size: 8pt !important;
+    font-weight: 600;
+    width: auto !important;
+    display: inline !important;
+  }
   /* Table fills full width and never scrolls */
   .allergen-table-wrapper {
     overflow: visible !important;
@@ -236,34 +247,53 @@
     border-collapse: collapse !important;
   }
   /* Column widths for A4 portrait */
-  table.allergen-table col.col-num {
-    width: 18pt !important;
-  }
   table.allergen-table col.col-name {
-    width: 110pt !important;
+    width: 120pt !important;
   }
   table.allergen-table col.col-allergen {
     width: auto !important;
   }
-  /* Row height */
+  /* Cell padding */
   table.allergen-table td, table.allergen-table th {
     padding: 1pt 1pt !important;
   }
-  /* Rotated header height */
+  /* Rotated allergen header height */
   table.allergen-table .allergen-header-cell {
-    height: 56pt !important;
-    font-size: 6.5pt !important;
+    height: 54pt !important;
+    font-size: 6pt !important;
+    padding: 2pt 1pt !important;
+  }
+  /* X marks */
+  table.allergen-table td span {
+    font-size: 8pt !important;
+    font-weight: bold !important;
+  }
+  /* Ingredient input in cells */
+  table.allergen-table input[type="text"] {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 1pt 2pt !important;
+    font-size: 7pt !important;
+    width: 100% !important;
   }
   table {
     page-break-inside: avoid;
   }
-  /* Hide edit inputs in print — show plain text */
-  input[data-print="ingredient"] {
-    border: none !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-    font-size: 7pt !important;
+  /* Big ALLERGÈNES title */
+  h1 {
+    font-size: 28pt !important;
+    line-height: 1 !important;
+    margin-bottom: 2pt !important;
+  }
+  /* Westotel logo */
+  img[alt="Westotel"] {
+    height: 40pt !important;
+  }
+  /* Sub-header grid */
+  .grid-cols-3 {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr 1fr !important;
   }
 }
 
