@@ -125,8 +125,8 @@ export const getListAllergenItemsUrl = (params?: ListAllergenItemsParams) => {
   const stringifiedParams = normalizedParams.toString();
 
   return stringifiedParams.length > 0
-    ? `/api/allergens/items?${stringifiedParams}`
-    : `/api/allergens/items`;
+    ? `/api/allergens?${stringifiedParams}`
+    : `/api/allergens`;
 };
 
 export const listAllergenItems = async (
@@ -142,7 +142,7 @@ export const listAllergenItems = async (
 export const getListAllergenItemsQueryKey = (
   params?: ListAllergenItemsParams,
 ) => {
-  return [`/api/allergens/items`, ...(params ? [params] : [])] as const;
+  return [`/api/allergens`, ...(params ? [params] : [])] as const;
 };
 
 export const getListAllergenItemsQueryOptions = <
@@ -211,7 +211,7 @@ export function useListAllergenItems<
  * @summary Create allergen item
  */
 export const getCreateAllergenItemUrl = () => {
-  return `/api/allergens/items`;
+  return `/api/allergens`;
 };
 
 export const createAllergenItem = async (
@@ -297,7 +297,7 @@ export const useCreateAllergenItem = <
  * @summary Update allergen item
  */
 export const getUpdateAllergenItemUrl = (id: number) => {
-  return `/api/allergens/items/${id}`;
+  return `/api/allergens/${id}`;
 };
 
 export const updateAllergenItem = async (
@@ -384,7 +384,7 @@ export const useUpdateAllergenItem = <
  * @summary Delete allergen item
  */
 export const getDeleteAllergenItemUrl = (id: number) => {
-  return `/api/allergens/items/${id}`;
+  return `/api/allergens/${id}`;
 };
 
 export const deleteAllergenItem = async (

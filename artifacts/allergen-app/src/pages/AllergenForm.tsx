@@ -259,7 +259,7 @@ export default function AllergenForm() {
             </div>
           </div>
           <img
-            src="/westotel-logo.png"
+            src={`${import.meta.env.BASE_URL}westotel-logo.png`}
             alt="Westotel Nantes Atlantique"
             className="h-16 object-contain ml-4 flex-shrink-0"
             data-testid="img-logo"

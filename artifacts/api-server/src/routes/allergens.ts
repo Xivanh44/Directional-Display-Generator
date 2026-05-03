@@ -4,7 +4,7 @@ import { eq, ilike } from "drizzle-orm";
 
 const router: IRouter = Router();
 
-router.get("/allergens/items", async (req, res) => {
+router.get("/allergens", async (req, res) => {
   try {
     const q = req.query.q as string | undefined;
     let rows;
@@ -28,7 +28,7 @@ router.get("/allergens/items", async (req, res) => {
   }
 });
 
-router.post("/allergens/items", async (req, res) => {
+router.post("/allergens", async (req, res) => {
   try {
     const body = req.body as {
       name: string;
@@ -81,7 +81,7 @@ router.post("/allergens/items", async (req, res) => {
   }
 });
 
-router.put("/allergens/items/:id", async (req, res) => {
+router.put("/allergens/:id", async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
     if (isNaN(id)) {
@@ -141,7 +141,7 @@ router.put("/allergens/items/:id", async (req, res) => {
   }
 });
 
-router.delete("/allergens/items/:id", async (req, res) => {
+router.delete("/allergens/:id", async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
     if (isNaN(id)) {
