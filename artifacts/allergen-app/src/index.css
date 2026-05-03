@@ -202,11 +202,16 @@
 }
 
 /* Print styles */
+@page {
+  size: A4 landscape;
+  margin: 10mm 8mm;
+}
+
 @media print {
   body {
     background: white !important;
     color: black !important;
-    font-size: 9pt;
+    font-size: 8pt;
   }
   .no-print {
     display: none !important;
@@ -215,6 +220,9 @@
     width: 100%;
     margin: 0;
     padding: 0;
+  }
+  table {
+    page-break-inside: avoid;
   }
 }
 
