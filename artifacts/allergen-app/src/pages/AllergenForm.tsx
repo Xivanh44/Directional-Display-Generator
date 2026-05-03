@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -140,6 +140,50 @@ export default function AllergenForm() {
     setNumRows((n) => n - 1);
   };
 
+  // Distribue la hauteur des lignes pour remplir exactement la page A4
+  useEffect(() => {
+    const MM_TO_PX = 3.7795275591; // 96 dpi
+
+    const handleBeforePrint = () => {
+      const table = document.querySelector("table.allergen-table") as HTMLTableElement | null;
+      if (!table) return;
+      const trs = Array.from(table.querySelectorAll("tbody tr")) as HTMLTableRowElement[];
+      if (trs.length === 0) return;
+
+      // Hauteur utile A4 portrait avec marges 8mm/6mm
+      const PAGE_H_MM = 297 - 8 - 8;          // 281 mm
+      const PAGE_H_PX = PAGE_H_MM * MM_TO_PX; // ~1062 px
+
+      // Éléments fixes (hors tableau body)
+      const header    = document.querySelector(".print-header")    as HTMLElement | null;
+      const subheader = document.querySelector(".print-subheader") as HTMLElement | null;
+      const footer    = document.querySelector(".print-footer")    as HTMLElement | null;
+      const thead     = table.querySelector("thead")               as HTMLElement | null;
+
+      const fixedH =
+        (header?.offsetHeight    ?? 0) +
+        (subheader?.offsetHeight ?? 0) +
+        (footer?.offsetHeight    ?? 0) +
+        (thead?.offsetHeight     ?? 0) +
+        16; // marges internes (padding, gaps)
+
+      const rowH = Math.floor((PAGE_H_PX - fixedH) / trs.length);
+      trs.forEach((tr) => { tr.style.height = `${rowH}px`; });
+    };
+
+    const handleAfterPrint = () => {
+      const trs = document.querySelectorAll("table.allergen-table tbody tr") as NodeListOf<HTMLTableRowElement>;
+      trs.forEach((tr) => { tr.style.height = ""; });
+    };
+
+    window.addEventListener("beforeprint", handleBeforePrint);
+    window.addEventListener("afterprint",  handleAfterPrint);
+    return () => {
+      window.removeEventListener("beforeprint", handleBeforePrint);
+      window.removeEventListener("afterprint",  handleAfterPrint);
+    };
+  }, [numRows]);
+
   const handlePrint = () => {
     window.print();
   };
@@ -221,7 +265,7 @@ export default function AllergenForm() {
       <div ref={printRef} className="print-page p-4">
 
         {/* ── En-tête : ALLERGÈNES + logo ── */}
-        <div className="flex items-center justify-between mb-1">
+        <div className="print-header flex items-center justify-between mb-1">
           <h1 className="text-5xl font-black uppercase tracking-tight" style={{ color: "hsl(var(--primary))", letterSpacing: "-0.02em" }}>
             ALLERGÈNES
           </h1>
@@ -234,7 +278,7 @@ export default function AllergenForm() {
         </div>
 
         {/* ── Sous-en-tête : 3 champs ── */}
-        <div className="grid grid-cols-3 border border-primary text-sm mb-2" style={{ borderWidth: "1.5px" }}>
+        <div className="print-subheader print-subheader-grid grid grid-cols-3 border border-primary text-sm mb-2" style={{ borderWidth: "1.5px" }}>
           {/* Champ 1 : type d'événement */}
           <div className="border-r border-primary px-2 py-1" style={{ borderRightWidth: "1.5px" }}>
             <input
@@ -385,7 +429,7 @@ export default function AllergenForm() {
         </div>
 
         {/* ── Pied de page ── */}
-        <div className="mt-2 space-y-0.5 border-t border-border pt-1" style={{ fontSize: "7px", color: "hsl(var(--muted-foreground))" }}>
+        <div className="print-footer mt-2 space-y-0.5 border-t border-border pt-1" style={{ fontSize: "7px", color: "hsl(var(--muted-foreground))" }}>
           <p className="font-semibold">Légende x : Présence</p>
           <p>
             *Anhydride sulfureux et sulfites en concentration de plus de 10mg/kg

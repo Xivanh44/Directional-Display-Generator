@@ -213,85 +213,140 @@
     height: 297mm;
     background: white !important;
     color: black !important;
-    font-size: 7pt;
+    margin: 0 !important;
+    padding: 0 !important;
   }
+
   .no-print {
     display: none !important;
   }
+
+  /* La zone imprimable occupe toute la page (hauteur = A4 - marges) */
   .print-page {
     width: 100%;
+    height: calc(297mm - 16mm);   /* 297mm - 8mm top - 8mm bottom */
     margin: 0;
-    padding: 4px;
+    padding: 0;
     box-sizing: border-box;
+    display: flex !important;
+    flex-direction: column !important;
   }
-  /* Sub-header inputs look like plain text */
+
+  /* En-tête et pied de page ne grandissent pas */
+  .print-header {
+    flex-shrink: 0;
+    margin-bottom: 2pt;
+  }
+  .print-subheader {
+    flex-shrink: 0;
+    margin-bottom: 3pt;
+  }
+  .print-footer {
+    flex-shrink: 0;
+    margin-top: 3pt;
+    font-size: 6pt !important;
+  }
+
+  /* Le tableau prend tout l'espace restant */
+  .allergen-table-wrapper {
+    flex: 1 1 auto !important;
+    overflow: visible !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0;
+  }
+
+  table.allergen-table {
+    width: 100% !important;
+    height: 100% !important;      /* remplit le flex parent */
+    table-layout: fixed !important;
+    border-collapse: collapse !important;
+    font-size: 7pt !important;
+  }
+
+  /* Colonne nom : fixe, le reste se répartit */
+  table.allergen-table col.col-name {
+    width: 115pt !important;
+  }
+  table.allergen-table col.col-allergen {
+    width: auto !important;
+  }
+
+  /* En-tête du tableau */
+  table.allergen-table thead tr {
+    height: auto !important;
+  }
+  table.allergen-table .allergen-header-cell {
+    height: 50pt !important;
+    font-size: 5.5pt !important;
+    padding: 2pt 1pt !important;
+    line-height: 1.1 !important;
+  }
+  table.allergen-table thead th {
+    padding: 1pt !important;
+    font-size: 7pt !important;
+    vertical-align: middle !important;
+  }
+
+  /* Les lignes data se répartissent équitablement */
+  table.allergen-table tbody {
+    height: 100%;
+  }
+  table.allergen-table tbody tr {
+    height: auto !important;
+  }
+  table.allergen-table td {
+    padding: 0 2pt !important;
+    vertical-align: middle !important;
+    font-size: 7pt !important;
+  }
+
+  /* Input ingrédient : texte brut sans bordure */
+  table.allergen-table input[type="text"] {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 2pt !important;
+    font-size: 7pt !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  /* Marque X */
+  table.allergen-table td span {
+    font-size: 9pt !important;
+    font-weight: bold !important;
+  }
+
+  table { page-break-inside: avoid; }
+
+  /* Titre ALLERGÈNES */
+  h1 {
+    font-size: 26pt !important;
+    line-height: 1 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Logo */
+  img[alt="Westotel"] {
+    height: 36pt !important;
+  }
+
+  /* Inputs sous-en-tête → texte brut */
   .subheader-input {
     border: none !important;
     background: transparent !important;
     box-shadow: none !important;
     padding: 0 !important;
-    font-size: 8pt !important;
+    font-size: 7.5pt !important;
     font-weight: 600;
     width: auto !important;
     display: inline !important;
   }
-  /* Table fills full width and never scrolls */
-  .allergen-table-wrapper {
-    overflow: visible !important;
-    width: 100%;
-  }
-  table.allergen-table {
-    width: 100% !important;
-    table-layout: fixed !important;
-    font-size: 7pt !important;
-    border-collapse: collapse !important;
-  }
-  /* Column widths for A4 portrait */
-  table.allergen-table col.col-name {
-    width: 120pt !important;
-  }
-  table.allergen-table col.col-allergen {
-    width: auto !important;
-  }
-  /* Cell padding */
-  table.allergen-table td, table.allergen-table th {
-    padding: 1pt 1pt !important;
-  }
-  /* Rotated allergen header height */
-  table.allergen-table .allergen-header-cell {
-    height: 54pt !important;
-    font-size: 6pt !important;
-    padding: 2pt 1pt !important;
-  }
-  /* X marks */
-  table.allergen-table td span {
-    font-size: 8pt !important;
-    font-weight: bold !important;
-  }
-  /* Ingredient input in cells */
-  table.allergen-table input[type="text"] {
-    border: none !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    padding: 1pt 2pt !important;
-    font-size: 7pt !important;
-    width: 100% !important;
-  }
-  table {
-    page-break-inside: avoid;
-  }
-  /* Big ALLERGÈNES title */
-  h1 {
-    font-size: 28pt !important;
-    line-height: 1 !important;
-    margin-bottom: 2pt !important;
-  }
-  /* Westotel logo */
-  img[alt="Westotel"] {
-    height: 40pt !important;
-  }
-  /* Sub-header grid */
-  .grid-cols-3 {
+
+  /* Grille sous-en-tête */
+  .print-subheader-grid {
     display: grid !important;
     grid-template-columns: 1fr 1fr 1fr !important;
   }
