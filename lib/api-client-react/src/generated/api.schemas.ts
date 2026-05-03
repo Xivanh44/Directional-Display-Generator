@@ -8,3 +8,51 @@
 export interface HealthStatus {
   status: string;
 }
+
+export interface AllergenItem {
+  id: number;
+  name: string;
+  lait: boolean;
+  cereales: boolean;
+  fruits_coque: boolean;
+  poisson: boolean;
+  mollusques: boolean;
+  crustaces: boolean;
+  celeri: boolean;
+  oeufs: boolean;
+  moutarde: boolean;
+  sesame: boolean;
+  soja: boolean;
+  sulfites: boolean;
+  lupin: boolean;
+  arachide: boolean;
+}
+
+export interface AllergenItemInput {
+  name: string;
+  lait: boolean;
+  cereales: boolean;
+  fruits_coque: boolean;
+  poisson: boolean;
+  mollusques: boolean;
+  crustaces: boolean;
+  celeri: boolean;
+  oeufs: boolean;
+  moutarde: boolean;
+  sesame: boolean;
+  soja: boolean;
+  sulfites: boolean;
+  lupin: boolean;
+  arachide: boolean;
+}
+
+export type ListAllergenItemsParams = {
+  /**
+   * Search query to filter items by name
+   */
+  q?: string;
+};
+
+export type DeleteAllergenItem200 = {
+  ok: boolean;
+};

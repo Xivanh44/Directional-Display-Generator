@@ -5,18 +5,27 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
+  MutationFunction,
   QueryFunction,
   QueryKey,
+  UseMutationOptions,
+  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
 } from "@tanstack/react-query";
 
-import type { HealthStatus } from "./api.schemas";
+import type {
+  AllergenItem,
+  AllergenItemInput,
+  DeleteAllergenItem200,
+  HealthStatus,
+  ListAllergenItemsParams,
+} from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
-import type { ErrorType } from "../custom-fetch";
+import type { ErrorType, BodyType } from "../custom-fetch";
 
 type AwaitedInput<T> = PromiseLike<T> | T;
 
@@ -99,3 +108,358 @@ export function useHealthCheck<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * List all allergen items, optionally filtered by name search
+ * @summary List allergen items
+ */
+export const getListAllergenItemsUrl = (params?: ListAllergenItemsParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/allergens/items?${stringifiedParams}`
+    : `/api/allergens/items`;
+};
+
+export const listAllergenItems = async (
+  params?: ListAllergenItemsParams,
+  options?: RequestInit,
+): Promise<AllergenItem[]> => {
+  return customFetch<AllergenItem[]>(getListAllergenItemsUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListAllergenItemsQueryKey = (
+  params?: ListAllergenItemsParams,
+) => {
+  return [`/api/allergens/items`, ...(params ? [params] : [])] as const;
+};
+
+export const getListAllergenItemsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listAllergenItems>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: ListAllergenItemsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listAllergenItems>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListAllergenItemsQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listAllergenItems>>
+  > = ({ signal }) => listAllergenItems(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listAllergenItems>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListAllergenItemsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listAllergenItems>>
+>;
+export type ListAllergenItemsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List allergen items
+ */
+
+export function useListAllergenItems<
+  TData = Awaited<ReturnType<typeof listAllergenItems>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: ListAllergenItemsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listAllergenItems>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListAllergenItemsQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Create allergen item
+ */
+export const getCreateAllergenItemUrl = () => {
+  return `/api/allergens/items`;
+};
+
+export const createAllergenItem = async (
+  allergenItemInput: AllergenItemInput,
+  options?: RequestInit,
+): Promise<AllergenItem> => {
+  return customFetch<AllergenItem>(getCreateAllergenItemUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(allergenItemInput),
+  });
+};
+
+export const getCreateAllergenItemMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createAllergenItem>>,
+    TError,
+    { data: BodyType<AllergenItemInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createAllergenItem>>,
+  TError,
+  { data: BodyType<AllergenItemInput> },
+  TContext
+> => {
+  const mutationKey = ["createAllergenItem"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createAllergenItem>>,
+    { data: BodyType<AllergenItemInput> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createAllergenItem(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateAllergenItemMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createAllergenItem>>
+>;
+export type CreateAllergenItemMutationBody = BodyType<AllergenItemInput>;
+export type CreateAllergenItemMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Create allergen item
+ */
+export const useCreateAllergenItem = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createAllergenItem>>,
+    TError,
+    { data: BodyType<AllergenItemInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createAllergenItem>>,
+  TError,
+  { data: BodyType<AllergenItemInput> },
+  TContext
+> => {
+  return useMutation(getCreateAllergenItemMutationOptions(options));
+};
+
+/**
+ * @summary Update allergen item
+ */
+export const getUpdateAllergenItemUrl = (id: number) => {
+  return `/api/allergens/items/${id}`;
+};
+
+export const updateAllergenItem = async (
+  id: number,
+  allergenItemInput: AllergenItemInput,
+  options?: RequestInit,
+): Promise<AllergenItem> => {
+  return customFetch<AllergenItem>(getUpdateAllergenItemUrl(id), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(allergenItemInput),
+  });
+};
+
+export const getUpdateAllergenItemMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateAllergenItem>>,
+    TError,
+    { id: number; data: BodyType<AllergenItemInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateAllergenItem>>,
+  TError,
+  { id: number; data: BodyType<AllergenItemInput> },
+  TContext
+> => {
+  const mutationKey = ["updateAllergenItem"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateAllergenItem>>,
+    { id: number; data: BodyType<AllergenItemInput> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updateAllergenItem(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateAllergenItemMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateAllergenItem>>
+>;
+export type UpdateAllergenItemMutationBody = BodyType<AllergenItemInput>;
+export type UpdateAllergenItemMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update allergen item
+ */
+export const useUpdateAllergenItem = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateAllergenItem>>,
+    TError,
+    { id: number; data: BodyType<AllergenItemInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateAllergenItem>>,
+  TError,
+  { id: number; data: BodyType<AllergenItemInput> },
+  TContext
+> => {
+  return useMutation(getUpdateAllergenItemMutationOptions(options));
+};
+
+/**
+ * @summary Delete allergen item
+ */
+export const getDeleteAllergenItemUrl = (id: number) => {
+  return `/api/allergens/items/${id}`;
+};
+
+export const deleteAllergenItem = async (
+  id: number,
+  options?: RequestInit,
+): Promise<DeleteAllergenItem200> => {
+  return customFetch<DeleteAllergenItem200>(getDeleteAllergenItemUrl(id), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteAllergenItemMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteAllergenItem>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteAllergenItem>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["deleteAllergenItem"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteAllergenItem>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return deleteAllergenItem(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteAllergenItemMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteAllergenItem>>
+>;
+
+export type DeleteAllergenItemMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Delete allergen item
+ */
+export const useDeleteAllergenItem = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteAllergenItem>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteAllergenItem>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getDeleteAllergenItemMutationOptions(options));
+};

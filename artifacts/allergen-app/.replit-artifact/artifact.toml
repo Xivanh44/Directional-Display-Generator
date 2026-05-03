@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/allergenes/"
+title = "Allergènes Cocktail"
+version = "1.0.0"
+id = "artifacts/allergen-app"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/allergenes/" ]
+localPort = 25150
+
+[services.development]
+run = "pnpm --filter @workspace/allergen-app run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/allergen-app", "run", "build" ]
+publicDir = "artifacts/allergen-app/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25150"
+BASE_PATH = "/allergenes/"

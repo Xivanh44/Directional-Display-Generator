@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: allergens
+    description: Allergen ingredient database
 paths:
   /healthz:
     get:
@@ -24,6 +26,90 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /allergens/items:
+    get:
+      operationId: listAllergenItems
+      tags: [allergens]
+      summary: List allergen items
+      description: List all allergen items, optionally filtered by name search
+      parameters:
+        - name: q
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Search query to filter items by name
+      responses:
+        "200":
+          description: List of allergen items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AllergenItem"
+    post:
+      operationId: createAllergenItem
+      tags: [allergens]
+      summary: Create allergen item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AllergenItemInput"
+      responses:
+        "201":
+          description: Created allergen item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AllergenItem"
+  /allergens/items/{id}:
+    put:
+      operationId: updateAllergenItem
+      tags: [allergens]
+      summary: Update allergen item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AllergenItemInput"
+      responses:
+        "200":
+          description: Updated allergen item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AllergenItem"
+    delete:
+      operationId: deleteAllergenItem
+      tags: [allergens]
+      summary: Delete allergen item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                required: [ok]
 components:
   schemas:
     HealthStatus:
@@ -33,4 +119,104 @@ components:
           type: string
       required:
         - status
-
+    AllergenItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        lait:
+          type: boolean
+        cereales:
+          type: boolean
+        fruits_coque:
+          type: boolean
+        poisson:
+          type: boolean
+        mollusques:
+          type: boolean
+        crustaces:
+          type: boolean
+        celeri:
+          type: boolean
+        oeufs:
+          type: boolean
+        moutarde:
+          type: boolean
+        sesame:
+          type: boolean
+        soja:
+          type: boolean
+        sulfites:
+          type: boolean
+        lupin:
+          type: boolean
+        arachide:
+          type: boolean
+      required:
+        - id
+        - name
+        - lait
+        - cereales
+        - fruits_coque
+        - poisson
+        - mollusques
+        - crustaces
+        - celeri
+        - oeufs
+        - moutarde
+        - sesame
+        - soja
+        - sulfites
+        - lupin
+        - arachide
+    AllergenItemInput:
+      type: object
+      properties:
+        name:
+          type: string
+        lait:
+          type: boolean
+        cereales:
+          type: boolean
+        fruits_coque:
+          type: boolean
+        poisson:
+          type: boolean
+        mollusques:
+          type: boolean
+        crustaces:
+          type: boolean
+        celeri:
+          type: boolean
+        oeufs:
+          type: boolean
+        moutarde:
+          type: boolean
+        sesame:
+          type: boolean
+        soja:
+          type: boolean
+        sulfites:
+          type: boolean
+        lupin:
+          type: boolean
+        arachide:
+          type: boolean
+      required:
+        - name
+        - lait
+        - cereales
+        - fruits_coque
+        - poisson
+        - mollusques
+        - crustaces
+        - celeri
+        - oeufs
+        - moutarde
+        - sesame
+        - soja
+        - sulfites
+        - lupin
+        - arachide

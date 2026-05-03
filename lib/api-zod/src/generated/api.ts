@@ -14,3 +14,112 @@ import * as zod from "zod";
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
 });
+
+/**
+ * List all allergen items, optionally filtered by name search
+ * @summary List allergen items
+ */
+export const ListAllergenItemsQueryParams = zod.object({
+  q: zod.coerce
+    .string()
+    .optional()
+    .describe("Search query to filter items by name"),
+});
+
+export const ListAllergenItemsResponseItem = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  lait: zod.boolean(),
+  cereales: zod.boolean(),
+  fruits_coque: zod.boolean(),
+  poisson: zod.boolean(),
+  mollusques: zod.boolean(),
+  crustaces: zod.boolean(),
+  celeri: zod.boolean(),
+  oeufs: zod.boolean(),
+  moutarde: zod.boolean(),
+  sesame: zod.boolean(),
+  soja: zod.boolean(),
+  sulfites: zod.boolean(),
+  lupin: zod.boolean(),
+  arachide: zod.boolean(),
+});
+export const ListAllergenItemsResponse = zod.array(
+  ListAllergenItemsResponseItem,
+);
+
+/**
+ * @summary Create allergen item
+ */
+export const CreateAllergenItemBody = zod.object({
+  name: zod.string(),
+  lait: zod.boolean(),
+  cereales: zod.boolean(),
+  fruits_coque: zod.boolean(),
+  poisson: zod.boolean(),
+  mollusques: zod.boolean(),
+  crustaces: zod.boolean(),
+  celeri: zod.boolean(),
+  oeufs: zod.boolean(),
+  moutarde: zod.boolean(),
+  sesame: zod.boolean(),
+  soja: zod.boolean(),
+  sulfites: zod.boolean(),
+  lupin: zod.boolean(),
+  arachide: zod.boolean(),
+});
+
+/**
+ * @summary Update allergen item
+ */
+export const UpdateAllergenItemParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateAllergenItemBody = zod.object({
+  name: zod.string(),
+  lait: zod.boolean(),
+  cereales: zod.boolean(),
+  fruits_coque: zod.boolean(),
+  poisson: zod.boolean(),
+  mollusques: zod.boolean(),
+  crustaces: zod.boolean(),
+  celeri: zod.boolean(),
+  oeufs: zod.boolean(),
+  moutarde: zod.boolean(),
+  sesame: zod.boolean(),
+  soja: zod.boolean(),
+  sulfites: zod.boolean(),
+  lupin: zod.boolean(),
+  arachide: zod.boolean(),
+});
+
+export const UpdateAllergenItemResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  lait: zod.boolean(),
+  cereales: zod.boolean(),
+  fruits_coque: zod.boolean(),
+  poisson: zod.boolean(),
+  mollusques: zod.boolean(),
+  crustaces: zod.boolean(),
+  celeri: zod.boolean(),
+  oeufs: zod.boolean(),
+  moutarde: zod.boolean(),
+  sesame: zod.boolean(),
+  soja: zod.boolean(),
+  sulfites: zod.boolean(),
+  lupin: zod.boolean(),
+  arachide: zod.boolean(),
+});
+
+/**
+ * @summary Delete allergen item
+ */
+export const DeleteAllergenItemParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const DeleteAllergenItemResponse = zod.object({
+  ok: zod.boolean(),
+});

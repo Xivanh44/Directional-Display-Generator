@@ -19,3 +19,4 @@
 
 export * from "./hotel_users";
 export * from "./manager_settings";
+export * from "./allergen_items";
