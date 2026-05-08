@@ -248,7 +248,7 @@
   }
 
   h1 {
-    font-size: 37pt !important;
+    font-size: 41pt !important;
     line-height: 1 !important;
     margin: 0 !important;
     padding: 0 !important;
@@ -299,7 +299,7 @@
 
   table.allergen-table {
     width: 100% !important;
-    height: auto !important;
+    height: 100% !important;
     table-layout: fixed !important;
     border-collapse: collapse !important;
     font-size: 7pt !important;
@@ -338,9 +338,9 @@
     -webkit-print-color-adjust: exact;
   }
 
-  /* ── Lignes corps — hauteur naturelle du contenu ── */
-  table.allergen-table tbody          { height: auto; }
-  table.allergen-table tbody tr       { height: auto !important; min-height: 10pt; }
+  /* ── Lignes corps — autofit via JS + fallback CSS ── */
+  table.allergen-table tbody          { height: 100%; }
+  table.allergen-table tbody tr       { height: auto !important; }
 
   /* Zébrure blanc / bleu très clair */
   table.allergen-table tbody tr:nth-child(odd) {

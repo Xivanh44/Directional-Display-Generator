@@ -108,19 +108,36 @@ export default function AllergenForm() {
   const addRow    = () => { if (numRows < MAX_ROWS) setNumRows((n) => n + 1); };
   const removeRow = () => { if (numRows > MIN_ROWS) setNumRows((n) => n - 1); };
 
-  // Autofit : répartit les lignes sur toute la hauteur disponible à l'impression
+  // Autofit : mesure les éléments fixes et répartit l'espace restant sur les lignes
   useEffect(() => {
-    const MM_TO_PX  = 3.7795275591;
-    const PAGE_H_MM = 277;   // 297 mm − 10 mm × 2 marges @page
-    const FIXED_MM  = 62;    // titre + sous-en-tête + thead + pied + padding + espacement
+    const px = (sel: string) =>
+      (document.querySelector(sel) as HTMLElement | null)?.offsetHeight ?? 0;
+    const cs = (el: Element | null, p: string) =>
+      el ? parseFloat((getComputedStyle(el as HTMLElement) as unknown as Record<string, string>)[p] ?? "0") : 0;
 
     const beforePrint = () => {
       const trs = Array.from(
         document.querySelectorAll("table.allergen-table tbody tr")
       ) as HTMLTableRowElement[];
       if (!trs.length) return;
-      const h = Math.floor(((PAGE_H_MM - FIXED_MM) / trs.length) * MM_TO_PX);
-      trs.forEach((tr) => { tr.style.height = `${Math.max(h, 10)}px`; });
+
+      // Hauteur de page utile (297 mm − 2 × 10 mm marges @page) à 96 dpi
+      const PAGE_H_PX = Math.round(277 * 3.7795275591);
+
+      const page   = document.querySelector(".print-page");
+      const header = document.querySelector(".print-header");
+      const sub    = document.querySelector(".print-subheader");
+      const footer = document.querySelector(".print-footer");
+
+      const padV   = cs(page, "paddingTop")  + cs(page, "paddingBottom");
+      const hdrH   = px(".print-header")     + cs(header, "marginBottom");
+      const subH   = px(".print-subheader")  + cs(sub, "marginBottom");
+      const theadH = px("table.allergen-table thead");
+      const ftrH   = cs(footer, "marginTop") + px(".print-footer");
+
+      const avail  = PAGE_H_PX - padV - hdrH - subH - theadH - ftrH;
+      const rowH   = Math.floor(avail / trs.length);
+      trs.forEach((tr) => { tr.style.height = `${Math.max(rowH, 10)}px`; });
     };
 
     window.addEventListener("beforeprint", beforePrint);
@@ -197,7 +214,7 @@ export default function AllergenForm() {
         {/* Titre principal */}
         <div className="print-header mb-2">
           <h1 className="font-black uppercase"
-            style={{ color: BLUE, letterSpacing: "-0.01em", lineHeight: 1, fontSize: "3.3rem" }}>
+            style={{ color: BLUE, letterSpacing: "-0.01em", lineHeight: 1, fontSize: "3.63rem" }}>
             ALLERGÈNES
           </h1>
         </div>
