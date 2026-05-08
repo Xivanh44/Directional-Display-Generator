@@ -6,7 +6,7 @@ import { Printer, Settings, Plus, Minus, Download } from "lucide-react";
 import IngredientAutocomplete from "@/components/IngredientAutocomplete";
 import PinDialog from "@/components/PinDialog";
 import { useManagerAuth } from "@/lib/manager-auth";
-import type { AllergenItem } from "@workspace/api-client-react";
+import type { AllergenItem } from "@/lib/ingredient-store";
 
 const MANAGER_PIN = "1234";
 const DEFAULT_ROWS = 30;

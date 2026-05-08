@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import type { AllergenItem, AllergenItemInput } from "@workspace/api-client-react";
+import type { AllergenItem, AllergenItemInput } from "@/lib/ingredient-store";
 
 const ALLERGENS = [
   { key: "lait" as const, label: "Lait et lactose" },

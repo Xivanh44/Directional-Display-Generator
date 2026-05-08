@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ManagerAuthProvider } from "@/lib/manager-auth";
+import { IngredientsProvider } from "@/contexts/IngredientsContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AllergenForm from "@/pages/AllergenForm";
 import AdminPage from "@/pages/AdminPage";
@@ -29,9 +30,11 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <ManagerAuthProvider>
-          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-            <Router />
-          </WouterRouter>
+          <IngredientsProvider>
+            <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+              <Router />
+            </WouterRouter>
+          </IngredientsProvider>
         </ManagerAuthProvider>
         <Toaster />
       </TooltipProvider>

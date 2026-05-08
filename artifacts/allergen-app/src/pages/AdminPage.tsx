@@ -1,17 +1,10 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import {
-  useListAllergenItems,
-  useCreateAllergenItem,
-  useUpdateAllergenItem,
-  useDeleteAllergenItem,
-  getListAllergenItemsQueryKey,
-} from "@workspace/api-client-react";
-import type { AllergenItem, AllergenItemInput } from "@workspace/api-client-react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useIngredients } from "@/contexts/IngredientsContext";
+import type { AllergenItem, AllergenItemInput } from "@/lib/ingredient-store";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,7 +15,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Plus, Pencil, Trash2, Search, Check, X } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2, Search, Check, X, Download, Upload } from "lucide-react";
 import AllergenEditor from "@/components/AllergenEditor";
 
 const ALLERGENS = [
@@ -45,68 +38,92 @@ const ALLERGENS = [
 export default function AdminPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const qc = useQueryClient();
-  const [search, setSearch] = useState("");
+  const { items, search, create, update, remove, exportJSON, importJSON } = useIngredients();
+
+  const [searchQuery, setSearchQuery] = useState("");
   const [editItem, setEditItem] = useState<AllergenItem | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [deleteItem, setDeleteItem] = useState<AllergenItem | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const importRef = useRef<HTMLInputElement>(null);
 
-  const { data: items = [], isLoading } = useListAllergenItems(
-    { q: search },
-    { query: { staleTime: 10000, queryKey: getListAllergenItemsQueryKey({ q: search }) } }
-  );
+  const displayed = searchQuery.trim() ? search(searchQuery) : items;
 
-  const invalidate = useCallback(() => {
-    qc.invalidateQueries({ queryKey: getListAllergenItemsQueryKey({}) });
-    qc.invalidateQueries({ queryKey: getListAllergenItemsQueryKey({ q: search }) });
-  }, [qc, search]);
-
-  const createMutation = useCreateAllergenItem({
-    mutation: {
-      onSuccess: () => {
+  const handleCreate = useCallback(
+    (data: AllergenItemInput) => {
+      setIsSaving(true);
+      try {
+        create(data);
         toast({ title: "Ingrédient créé" });
         setCreateOpen(false);
-        invalidate();
-      },
-      onError: () => toast({ title: "Erreur lors de la création", variant: "destructive" }),
+      } catch {
+        toast({ title: "Erreur lors de la création", variant: "destructive" });
+      } finally {
+        setIsSaving(false);
+      }
     },
-  });
+    [create, toast]
+  );
 
-  const updateMutation = useUpdateAllergenItem({
-    mutation: {
-      onSuccess: () => {
+  const handleUpdate = useCallback(
+    (data: AllergenItemInput) => {
+      if (!editItem) return;
+      setIsSaving(true);
+      try {
+        update(editItem.id, data);
         toast({ title: "Ingrédient mis à jour" });
         setEditItem(null);
-        invalidate();
-      },
-      onError: () => toast({ title: "Erreur lors de la mise à jour", variant: "destructive" }),
+      } catch {
+        toast({ title: "Erreur lors de la mise à jour", variant: "destructive" });
+      } finally {
+        setIsSaving(false);
+      }
     },
-  });
+    [editItem, update, toast]
+  );
 
-  const deleteMutation = useDeleteAllergenItem({
-    mutation: {
-      onSuccess: () => {
-        toast({ title: "Ingrédient supprimé" });
-        setDeleteItem(null);
-        invalidate();
-      },
-      onError: () => toast({ title: "Erreur lors de la suppression", variant: "destructive" }),
-    },
-  });
-
-  const handleCreate = (data: AllergenItemInput) => {
-    createMutation.mutate({ data });
-  };
-
-  const handleUpdate = (data: AllergenItemInput) => {
-    if (!editItem) return;
-    updateMutation.mutate({ id: editItem.id, data });
-  };
-
-  const handleDelete = () => {
+  const handleDelete = useCallback(() => {
     if (!deleteItem) return;
-    deleteMutation.mutate({ id: deleteItem.id });
-  };
+    try {
+      remove(deleteItem.id);
+      toast({ title: "Ingrédient supprimé" });
+      setDeleteItem(null);
+    } catch {
+      toast({ title: "Erreur lors de la suppression", variant: "destructive" });
+    }
+  }, [deleteItem, remove, toast]);
+
+  const handleExport = useCallback(() => {
+    const json = exportJSON();
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `base-ingredients-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast({ title: "Base exportée" });
+  }, [exportJSON, toast]);
+
+  const handleImportFile = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const json = ev.target?.result as string;
+          importJSON(json);
+          toast({ title: "Base importée avec succès" });
+        } catch {
+          toast({ title: "Fichier invalide", variant: "destructive" });
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = "";
+    },
+    [importJSON, toast]
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -126,6 +143,32 @@ export default function AdminPage() {
           <p className="text-xs text-muted-foreground">Gestion des allergènes par ingrédient</p>
         </div>
         <div className="ml-auto flex items-center gap-2">
+          <input
+            ref={importRef}
+            type="file"
+            accept="application/json,.json"
+            className="hidden"
+            onChange={handleImportFile}
+            data-testid="input-import-file"
+          />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => importRef.current?.click()}
+            data-testid="button-import"
+          >
+            <Upload className="w-4 h-4 mr-1" />
+            Importer
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExport}
+            data-testid="button-export"
+          >
+            <Download className="w-4 h-4 mr-1" />
+            Exporter
+          </Button>
           <Button
             size="sm"
             onClick={() => setCreateOpen(true)}
@@ -142,8 +185,8 @@ export default function AdminPage() {
         <div className="relative mb-4">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Rechercher un ingrédient..."
             className="pl-9"
             data-testid="input-search"
@@ -152,7 +195,8 @@ export default function AdminPage() {
 
         {/* Count */}
         <p className="text-xs text-muted-foreground mb-3" data-testid="text-count">
-          {isLoading ? "Chargement..." : `${items.length} ingrédient${items.length !== 1 ? "s" : ""}`}
+          {displayed.length} ingrédient{displayed.length !== 1 ? "s" : ""}
+          {searchQuery.trim() ? ` trouvé${displayed.length !== 1 ? "s" : ""}` : " dans la base"}
         </p>
 
         {/* Table */}
@@ -179,7 +223,7 @@ export default function AdminPage() {
                 </tr>
               </thead>
               <tbody>
-                {items.map((item, idx) => (
+                {displayed.map((item, idx) => (
                   <tr
                     key={item.id}
                     className={`border-b border-border last:border-0 ${
@@ -223,7 +267,7 @@ export default function AdminPage() {
                     </td>
                   </tr>
                 ))}
-                {!isLoading && items.length === 0 && (
+                {displayed.length === 0 && (
                   <tr>
                     <td
                       colSpan={ALLERGENS.length + 2}
@@ -245,7 +289,7 @@ export default function AdminPage() {
           open={createOpen}
           onClose={() => setCreateOpen(false)}
           onSave={handleCreate}
-          isSaving={createMutation.isPending}
+          isSaving={isSaving}
           title="Nouvel ingrédient"
         />
       )}
@@ -256,7 +300,7 @@ export default function AdminPage() {
           open={!!editItem}
           onClose={() => setEditItem(null)}
           onSave={handleUpdate}
-          isSaving={updateMutation.isPending}
+          isSaving={isSaving}
           title="Modifier l'ingrédient"
           initialData={editItem}
         />
@@ -268,7 +312,7 @@ export default function AdminPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Supprimer cet ingrédient ?</AlertDialogTitle>
             <AlertDialogDescription>
-              <strong>{deleteItem?.name}</strong> sera définitivement supprimé de la base.
+              <strong>{deleteItem?.name}</strong> sera définitivement supprimé de la base locale.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -278,7 +322,7 @@ export default function AdminPage() {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               data-testid="button-delete-confirm"
             >
-              {deleteMutation.isPending ? "Suppression..." : "Supprimer"}
+              Supprimer
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

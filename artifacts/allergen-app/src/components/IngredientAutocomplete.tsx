@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useListAllergenItems, getListAllergenItemsQueryKey } from "@workspace/api-client-react";
-import type { AllergenItem } from "@workspace/api-client-react";
+import { useIngredients } from "@/contexts/IngredientsContext";
+import type { AllergenItem } from "@/lib/ingredient-store";
 
 interface Props {
   value: string;
@@ -10,26 +10,25 @@ interface Props {
 }
 
 export default function IngredientAutocomplete({ value, onSelect, onChange, rowIndex }: Props) {
+  const { search } = useIngredients();
   const [query, setQuery] = useState(value);
   const [open, setOpen] = useState(false);
   const [highlighted, setHighlighted] = useState(0);
+  const [suggestions, setSuggestions] = useState<AllergenItem[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  const { data: suggestions = [] } = useListAllergenItems(
-    { q: query },
-    {
-      query: {
-        enabled: open && query.trim().length > 0,
-        staleTime: 30000,
-        queryKey: getListAllergenItemsQueryKey({ q: query }),
-      },
-    }
-  );
 
   useEffect(() => {
     setQuery(value);
   }, [value]);
+
+  useEffect(() => {
+    if (open && query.trim().length > 0) {
+      setSuggestions(search(query).slice(0, 50));
+    } else {
+      setSuggestions([]);
+    }
+  }, [open, query, search]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = e.target.value;
