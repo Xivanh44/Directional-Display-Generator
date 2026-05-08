@@ -295,6 +295,22 @@
   table.allergen-table tbody tr {
     height: auto !important;
   }
+
+  /* Zébrures à l'impression */
+  table.allergen-table tbody tr:nth-child(even) {
+    background-color: #f0f3f8 !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  table.allergen-table tbody tr:nth-child(odd) {
+    background-color: white !important;
+  }
+
+  /* Colonnes en-tête alternées à l'impression */
+  table.allergen-table thead th {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
   table.allergen-table td {
     padding: 0 2pt !important;
     vertical-align: middle !important;

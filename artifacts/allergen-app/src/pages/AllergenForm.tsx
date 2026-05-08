@@ -344,12 +344,12 @@ export default function AllergenForm() {
                 >
                   ALLERGÈNES À<br />DÉCLARATION<br />OBLIGATOIRE
                 </th>
-                {/* En-têtes allergènes (texte vertical) */}
-                {ALLERGENS.map((a) => (
+                {/* En-têtes allergènes (texte vertical) — colonnes alternées */}
+                {ALLERGENS.map((a, idx) => (
                   <th
                     key={a.key}
                     className="border border-primary text-center py-0 font-bold"
-                    style={{ backgroundColor: "hsl(var(--primary))", padding: 0 }}
+                    style={{ backgroundColor: idx % 2 === 0 ? "hsl(215,60%,40%)" : "hsl(215,50%,52%)", padding: 0 }}
                   >
                     <div
                       className="allergen-header-cell"
@@ -385,7 +385,7 @@ export default function AllergenForm() {
               {rows.slice(0, numRows).map((row, i) => (
                 <tr
                   key={i}
-                  className="bg-white"
+                  className={i % 2 === 0 ? "bg-white" : "bg-[#f0f3f8]"}
                   data-testid={`row-ingredient-${i}`}
                 >
                   <td className="border border-border py-0 px-0">
