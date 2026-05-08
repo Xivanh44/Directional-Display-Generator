@@ -290,7 +290,7 @@ export default function AllergenForm() {
         {/* Titre principal */}
         <div className="print-header mb-2">
           <h1 className="font-black uppercase"
-            style={{ color: BLUE, letterSpacing: "-0.01em", lineHeight: 1, fontSize: "2.5rem" }}>
+            style={{ color: BLUE, letterSpacing: "-0.01em", lineHeight: 1, fontSize: "2.875rem" }}>
             ALLERGÈNES
           </h1>
         </div>
