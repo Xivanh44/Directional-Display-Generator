@@ -87,7 +87,7 @@ export function PDFPreview({ state, allLogos }: PDFPreviewProps) {
                     alt=""
                   />
                 ) : (
-                  <AutoFitChar char="\u3008" bold />
+                  <AutoFitChar char={'\u3008'} bold />
                 )}
               </div>
             )}
@@ -111,7 +111,7 @@ export function PDFPreview({ state, allLogos }: PDFPreviewProps) {
                     alt=""
                   />
                 ) : (
-                  <AutoFitChar char="\u3009" bold />
+                  <AutoFitChar char={'\u3009'} bold />
                 )}
               </div>
             )}
