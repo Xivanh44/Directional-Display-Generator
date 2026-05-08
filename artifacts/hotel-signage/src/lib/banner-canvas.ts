@@ -116,7 +116,7 @@ export async function renderBannerToCanvas(state: SignageState): Promise<HTMLCan
   if (state.text.trim()) {
     const fontFamily = state.font || 'Arial';
     const arrowSpace = chevronH * ARROW_WIDTH_RATIO + margin;
-    const safetyPad = canvasW * 0.05;
+    const safetyPad = canvasW * 0.08;
     const maxTextW = state.arrow === 'none' ? canvasW * 0.9 : canvasW - 2 * arrowSpace - 2 * safetyPad;
     const maxTextH = canvasH * 0.70;
 

@@ -100,7 +100,7 @@ function renderPage(
     if (text.trim()) {
       doc.setFont('helvetica', 'normal');
       const arrowSpace = bannerH * ARROW_HEIGHT_PCT * ARROW_WIDTH_RATIO + w * ARROW_MARGIN_PCT;
-      const safetyPad = w * 0.05;
+      const safetyPad = w * 0.08;
       const maxTextW = arrow === 'none' ? w * 0.9 : w - 2 * arrowSpace - safetyPad * 2;
       const maxTextH = bannerH * 0.70;
       let lo = 4;
