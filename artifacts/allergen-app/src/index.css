@@ -201,84 +201,97 @@
   }
 }
 
-/* Print styles */
+/* ═══════════════════════════════════════════
+   IMPRESSION / PDF — Fiche allergènes A4
+   ═══════════════════════════════════════════ */
 @page {
   size: A4 portrait;
   margin: 10mm 12mm;
 }
 
 @media print {
+  /* ── Reset de base ── */
   html, body {
     width: 210mm;
     height: 297mm;
     background: white !important;
-    color: #2e3148 !important;
+    color: #1f355e !important;
     margin: 0 !important;
     padding: 0 !important;
   }
 
-  .no-print {
-    display: none !important;
-  }
+  /* Éléments masqués à l'impression */
+  .no-print { display: none !important; }
 
-  /* Zone imprimable : cadre fin + flex colonne */
+  /* Date formatée visible à l'impression */
+  [data-print-date] { display: inline !important; }
+
+  /* ── Cadre principal A4 ── */
   .print-page {
     width: 100%;
-    height: calc(297mm - 20mm); /* 297 - 10mm top - 10mm bottom */
+    height: calc(297mm - 20mm); /* marges @page = 10 mm × 2 */
     margin: 0;
     padding: 6pt 8pt;
     box-sizing: border-box;
     display: flex !important;
     flex-direction: column !important;
-    border: 1pt solid #8890aa;
+    overflow: hidden !important;
+    border: 1pt solid #3a5688;
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
 
-  /* En-tête */
+  /* ── Titre ── */
   .print-header {
     flex-shrink: 0;
     margin-bottom: 3pt;
   }
 
-  /* Sous-titre réglementaire */
-  .print-subtitle {
-    font-size: 6pt !important;
-    color: #7076a0 !important;
-    margin-top: 1pt !important;
+  h1 {
+    font-size: 28pt !important;
+    line-height: 1 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    color: #1f355e !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
   }
 
-  /* Sous-en-tête : 3 cellules */
+  /* ── Sous-en-tête 3 cases ── */
   .print-subheader {
     flex-shrink: 0;
-    margin-bottom: 5pt;
+    margin-bottom: 4pt;
   }
   .print-subheader-grid {
     display: grid !important;
     grid-template-columns: 1fr 1fr 1fr !important;
   }
 
-  /* Label discret au-dessus de chaque champ */
-  .subheader-label {
-    font-size: 5pt !important;
-    color: #7076a0 !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.04em !important;
-    margin-bottom: 1pt !important;
+  /* Inputs dans le sous-en-tête */
+  .subheader-input {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    font-size: 7.5pt !important;
+    font-weight: 600;
+    color: #1f355e !important;
+    width: 100% !important;
+    display: block !important;
   }
 
-  /* Pied de page */
+  /* ── Pied de page ── */
   .print-footer {
     flex-shrink: 0;
-    margin-top: 3pt;
+    margin-top: 2pt;
     font-size: 5.5pt !important;
-    color: #606478 !important;
+    color: #4a6a9a !important;
   }
 
-  /* Le tableau prend tout l'espace restant */
+  /* ── Tableau : remplit l'espace restant ── */
   .allergen-table-wrapper {
     flex: 1 1 auto !important;
-    overflow: visible !important;
+    overflow: hidden !important;       /* pas de débordement horizontal */
     display: flex !important;
     flex-direction: column !important;
     min-height: 0;
@@ -290,110 +303,98 @@
     table-layout: fixed !important;
     border-collapse: collapse !important;
     font-size: 7pt !important;
+    table-layout: fixed !important;
   }
 
-  /* Colonne nom fixe, le reste se répartit */
-  table.allergen-table col.col-name  { width: 110pt !important; }
-  table.allergen-table col.col-allergen { width: auto !important; }
+  /* Largeurs de colonnes calculées pour tenir dans 186 mm ≈ 527 pt
+     Col nom : 105 pt  — 15 allergènes × 28 pt = 420 pt  — total 525 pt ✓ */
+  table.allergen-table col.col-name    { width: 105pt !important; }
+  table.allergen-table col.col-allergen{ width: 28pt  !important; }
+  table.allergen-table col.no-print    { display: none !important; width: 0 !important; }
 
-  /* En-têtes */
+  /* ── En-têtes ── */
   table.allergen-table thead tr { height: auto !important; }
-  table.allergen-table .allergen-header-cell {
-    height: 44pt !important;
-    font-size: 5.5pt !important;
-    padding: 2pt 1pt !important;
-    line-height: 1.1 !important;
-    color: #2e3148 !important;
-    print-color-adjust: exact;
-    -webkit-print-color-adjust: exact;
-  }
+
   table.allergen-table thead th {
-    padding: 1pt !important;
-    font-size: 6.5pt !important;
+    padding: 0 !important;
     vertical-align: middle !important;
+    overflow: hidden !important;
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
 
-  /* Couleurs en-tête alternées (gris sobre) */
-  table.allergen-table thead th:nth-child(even) {
-    background-color: #d8dae6 !important;
-  }
-  table.allergen-table thead th:nth-child(odd) {
-    background-color: #e4e6ef !important;
+  /* Alternance bleu-gris clair */
+  table.allergen-table thead th:nth-child(odd)  { background-color: #dde3ef !important; }
+  table.allergen-table thead th:nth-child(even) { background-color: #ccd4e8 !important; }
+
+  /* Cellule de texte vertical */
+  table.allergen-table .allergen-header-cell {
+    height: 60pt !important;
+    font-size: 5pt !important;
+    line-height: 1.2 !important;
+    padding: 2pt 1pt !important;
+    color: #1f355e !important;
+    overflow: hidden !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
   }
 
-  /* Corps */
-  table.allergen-table tbody { height: 100%; }
-  table.allergen-table tbody tr { height: auto !important; }
+  /* ── Lignes corps ── */
+  table.allergen-table tbody          { height: 100%; }
+  table.allergen-table tbody tr       { height: auto !important; }
 
-  /* Zébrures gris très clair / blanc */
+  /* Zébrure blanc / bleu très clair */
   table.allergen-table tbody tr:nth-child(odd) {
     background-color: #ffffff !important;
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
   table.allergen-table tbody tr:nth-child(even) {
-    background-color: #f1f2f6 !important;
+    background-color: #eef0f6 !important;
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
 
   table.allergen-table td {
-    padding: 0 2pt !important;
+    padding: 0 1pt !important;
     vertical-align: middle !important;
     font-size: 7pt !important;
+    overflow: hidden !important;
   }
 
-  /* Input ingrédient : texte brut */
+  /* Masquer colonne "effacer" */
+  table.allergen-table td.no-print,
+  table.allergen-table th.no-print {
+    display: none !important;
+    width: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Input ingrédient : texte pur */
   table.allergen-table input[type="text"] {
     border: none !important;
     background: transparent !important;
     box-shadow: none !important;
-    padding: 0 2pt !important;
+    outline: none !important;
+    padding: 0 1pt !important;
     font-size: 7pt !important;
     width: 100% !important;
     height: 100% !important;
-    color: #2e3148 !important;
+    color: #1f355e !important;
   }
 
-  /* Marque ✕ */
+  /* Marque X */
   table.allergen-table td span {
-    font-size: 8pt !important;
-    font-weight: bold !important;
-    color: #2e3148 !important;
+    font-size: 9pt !important;
+    font-weight: 700 !important;
+    color: #1f355e !important;
   }
 
+  /* Pas de saut de page dans le tableau */
   table { page-break-inside: avoid; }
 
-  /* Titre principal */
-  h1 {
-    font-size: 28pt !important;
-    line-height: 1 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    color: #4a4e6a !important;
-    print-color-adjust: exact;
-    -webkit-print-color-adjust: exact;
-  }
-
-  /* Masquer les placeholders */
-  input::placeholder {
-    color: transparent !important;
-  }
-
-  /* Inputs sous-en-tête → texte brut */
-  .subheader-input {
-    border: none !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-    font-size: 7pt !important;
-    font-weight: 600;
-    color: #2e3148 !important;
-    width: 100% !important;
-    display: block !important;
-  }
+  /* Masquer tous les placeholders */
+  input::placeholder { color: transparent !important; }
 }
 
 @layer utilities {
