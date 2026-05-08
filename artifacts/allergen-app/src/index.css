@@ -277,7 +277,7 @@
     height: auto !important;
   }
   table.allergen-table .allergen-header-cell {
-    height: 50pt !important;
+    height: 44pt !important;
     font-size: 5.5pt !important;
     padding: 2pt 1pt !important;
     line-height: 1.1 !important;
@@ -322,7 +322,7 @@
 
   /* Titre ALLERGÈNES */
   h1 {
-    font-size: 26pt !important;
+    font-size: 22pt !important;
     line-height: 1 !important;
     margin: 0 !important;
     padding: 0 !important;
@@ -330,7 +330,7 @@
 
   /* Logo */
   img[alt="Westotel"] {
-    height: 52pt !important;
+    height: 40pt !important;
   }
 
   /* Masquer le placeholder dans les cases vides */

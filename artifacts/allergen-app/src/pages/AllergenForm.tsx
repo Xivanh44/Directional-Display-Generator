@@ -140,9 +140,9 @@ export default function AllergenForm() {
     setNumRows((n) => n - 1);
   };
 
-  // Distribue la hauteur des lignes pour remplir exactement la page A4
+  // Distribue la hauteur des lignes pour tenir exactement sur une page A4
   useEffect(() => {
-    const MM_TO_PX = 3.7795275591; // 96 dpi
+    const MM_TO_PX = 3.7795275591; // 96 dpi — 1 CSS px = 1/96 inch
 
     const handleBeforePrint = () => {
       const table = document.querySelector("table.allergen-table") as HTMLTableElement | null;
@@ -150,29 +150,26 @@ export default function AllergenForm() {
       const trs = Array.from(table.querySelectorAll("tbody tr")) as HTMLTableRowElement[];
       if (trs.length === 0) return;
 
-      // Hauteur utile A4 portrait avec marges 8mm/6mm
-      const PAGE_H_MM = 297 - 8 - 8;          // 281 mm
-      const PAGE_H_PX = PAGE_H_MM * MM_TO_PX; // ~1062 px
+      // A4 portrait : 297 mm − 8 mm haut − 8 mm bas = 281 mm utiles
+      const PAGE_H_MM = 281;
 
-      // Éléments fixes (hors tableau body)
-      const header    = document.querySelector(".print-header")    as HTMLElement | null;
-      const subheader = document.querySelector(".print-subheader") as HTMLElement | null;
-      const footer    = document.querySelector(".print-footer")    as HTMLElement | null;
-      const thead     = table.querySelector("thead")               as HTMLElement | null;
+      // Hauteurs fixes en impression (valeurs @media print de index.css) :
+      //  • print-header  : logo 40pt = 14.1 mm  + margin-bottom 2pt = 14.8 mm
+      //  • print-subheader : ~7 mm  (py-1 + texte 8pt + bordure + margin 3pt)
+      //  • thead (allergen-header-cell 44pt = 15.5 mm + padding 2pt) = 16.2 mm
+      //  • print-footer  : 3 lignes × 6pt + padding = ~8 mm
+      //  • espaces internes (gaps, padding print-page) : ~4 mm
+      const FIXED_MM = 50;
 
-      const fixedH =
-        (header?.offsetHeight    ?? 0) +
-        (subheader?.offsetHeight ?? 0) +
-        (footer?.offsetHeight    ?? 0) +
-        (thead?.offsetHeight     ?? 0) +
-        16; // marges internes (padding, gaps)
-
-      const rowH = Math.floor((PAGE_H_PX - fixedH) / trs.length);
+      const availMM = PAGE_H_MM - FIXED_MM;
+      const rowH    = Math.floor((availMM / trs.length) * MM_TO_PX);
       trs.forEach((tr) => { tr.style.height = `${rowH}px`; });
     };
 
     const handleAfterPrint = () => {
-      const trs = document.querySelectorAll("table.allergen-table tbody tr") as NodeListOf<HTMLTableRowElement>;
+      const trs = document.querySelectorAll(
+        "table.allergen-table tbody tr"
+      ) as NodeListOf<HTMLTableRowElement>;
       trs.forEach((tr) => { tr.style.height = ""; });
     };
 
