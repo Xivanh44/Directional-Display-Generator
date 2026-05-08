@@ -359,6 +359,7 @@
     vertical-align: middle !important;
     font-size: 7pt !important;
     overflow: hidden !important;
+    height: 13pt !important; /* plancher visible pour les lignes vides */
   }
 
   /* Colonne nom : autorise le retour à la ligne */
