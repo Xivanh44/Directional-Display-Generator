@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Printer, Settings, Plus, Minus } from "lucide-react";
+import { Printer, Settings, Plus, Minus, Download } from "lucide-react";
 import IngredientAutocomplete from "@/components/IngredientAutocomplete";
 import PinDialog from "@/components/PinDialog";
 import { useManagerAuth } from "@/lib/manager-auth";
@@ -13,22 +13,32 @@ const DEFAULT_ROWS = 30;
 const MIN_ROWS = 5;
 const MAX_ROWS = 50;
 
+// A4 à 96 dpi
+const A4_W_PX = 794;
+const A4_H_PX = 1123;
+// Marges @page (10mm haut/bas, 12mm côtés) en px
+const MARGIN_H_PX = Math.round(10 * 3.7795);
+const MARGIN_V_PX = Math.round(12 * 3.7795);
+// Zone utile à l'intérieur des marges
+const INNER_W_PX = A4_W_PX - MARGIN_V_PX * 2;
+const INNER_H_PX = A4_H_PX - MARGIN_H_PX * 2;
+
 const ALLERGENS = [
-  { key: "lait",        label: "Lait et lactose" },
-  { key: "cereales",    label: "Céréales contenant du gluten" },
-  { key: "fruits_coque",label: "Fruits à coque" },
-  { key: "poisson",     label: "Poisson" },
-  { key: "mollusques",  label: "Mollusques" },
-  { key: "crustaces",   label: "Crustacés" },
-  { key: "celeri",      label: "Céleri" },
-  { key: "oeufs",       label: "Œufs" },
-  { key: "moutarde",    label: "Moutarde" },
-  { key: "sesame",      label: "Graines de sésame" },
-  { key: "soja",        label: "Soja" },
-  { key: "sulfites",    label: "Anhydride sulfureux et sulfites" },
-  { key: "lupin",       label: "Lupin" },
-  { key: "arachide",    label: "Arachide" },
-  { key: "aucun",       label: "Aucun" },
+  { key: "lait",         label: "Lait et lactose" },
+  { key: "cereales",     label: "Céréales contenant du gluten" },
+  { key: "fruits_coque", label: "Fruits à coque" },
+  { key: "poisson",      label: "Poisson" },
+  { key: "mollusques",   label: "Mollusques" },
+  { key: "crustaces",    label: "Crustacés" },
+  { key: "celeri",       label: "Céleri" },
+  { key: "oeufs",        label: "Œufs" },
+  { key: "moutarde",     label: "Moutarde" },
+  { key: "sesame",       label: "Graines de sésame" },
+  { key: "soja",         label: "Soja" },
+  { key: "sulfites",     label: "Anhydride sulfureux et sulfites" },
+  { key: "lupin",        label: "Lupin" },
+  { key: "arachide",     label: "Arachide" },
+  { key: "aucun",        label: "Aucun" },
 ] as const;
 
 type AllergenKey = (typeof ALLERGENS)[number]["key"];
@@ -50,9 +60,39 @@ function emptyRow(): TableRow {
   };
 }
 
+/** Calcule et applique la hauteur uniforme des lignes tbody pour tenir sur une page. */
+function applyRowHeights(innerHPx: number) {
+  const table = document.querySelector("table.allergen-table") as HTMLTableElement | null;
+  if (!table) return;
+  const trs = Array.from(table.querySelectorAll("tbody tr")) as HTMLTableRowElement[];
+  if (trs.length === 0) return;
+
+  const thead = table.querySelector("thead");
+  const theadH = thead ? thead.getBoundingClientRect().height : 0;
+  const footer = document.querySelector(".print-footer") as HTMLElement | null;
+  const footerH = footer ? footer.getBoundingClientRect().height : 0;
+  const header = document.querySelector(".print-header") as HTMLElement | null;
+  const headerH = header ? header.getBoundingClientRect().height : 0;
+  const subheader = document.querySelector(".print-subheader") as HTMLElement | null;
+  const subH = subheader ? subheader.getBoundingClientRect().height : 0;
+
+  // padding .print-page (6pt top+bottom ≈ 16px each side)
+  const PAD = 16;
+  const avail = innerHPx - headerH - subH - theadH - footerH - PAD * 2 - 12;
+  const rowH = Math.floor(avail / trs.length);
+  trs.forEach((tr) => { tr.style.height = `${Math.max(rowH, 8)}px`; });
+}
+
+function clearRowHeights() {
+  const trs = document.querySelectorAll(
+    "table.allergen-table tbody tr"
+  ) as NodeListOf<HTMLTableRowElement>;
+  trs.forEach((tr) => { tr.style.height = ""; });
+}
+
 export default function AllergenForm() {
   const [, setLocation] = useLocation();
-  const { toast: _toast } = useToast();
+  const { toast } = useToast();
   const { login } = useManagerAuth();
   const [eventType, setEventType] = useState("");
   const [eventName, setEventName] = useState("");
@@ -62,6 +102,7 @@ export default function AllergenForm() {
     Array.from({ length: MAX_ROWS }, emptyRow)
   );
   const [pinOpen, setPinOpen] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 
   const handleIngredientSelect = useCallback(
@@ -115,37 +156,22 @@ export default function AllergenForm() {
   const addRow = () => { if (numRows < MAX_ROWS) setNumRows((n) => n + 1); };
   const removeRow = () => { if (numRows > MIN_ROWS) setNumRows((n) => n - 1); };
 
+  // Hook impression navigateur
   useEffect(() => {
     const MM_TO_PX = 3.7795275591;
+    const PAGE_H_MM = 277; // 297 - 10 - 10
+    const FIXED_MM = 52;
+    const availMM = PAGE_H_MM - FIXED_MM;
 
     const handleBeforePrint = () => {
       const table = document.querySelector("table.allergen-table") as HTMLTableElement | null;
       if (!table) return;
       const trs = Array.from(table.querySelectorAll("tbody tr")) as HTMLTableRowElement[];
       if (trs.length === 0) return;
-
-      // A4 297mm − marges @page (10mm haut + 10mm bas) = 277mm utiles
-      const PAGE_H_MM = 277;
-
-      // Éléments fixes (mesures print) :
-      //  • titre h1 28pt ≈ 10mm + margin-bottom 2pt ≈ 0.7mm
-      //  • sous-en-tête ~10mm + margin-bottom 8pt ≈ 2.8mm
-      //  • thead 44pt ≈ 15.5mm
-      //  • pied de page ~8mm
-      //  • espaces / padding / cadre : ~5mm
-      const FIXED_MM = 52;
-
-      const availMM = PAGE_H_MM - FIXED_MM;
-      const rowH    = Math.floor((availMM / trs.length) * MM_TO_PX);
+      const rowH = Math.floor((availMM / trs.length) * MM_TO_PX);
       trs.forEach((tr) => { tr.style.height = `${rowH}px`; });
     };
-
-    const handleAfterPrint = () => {
-      const trs = document.querySelectorAll(
-        "table.allergen-table tbody tr"
-      ) as NodeListOf<HTMLTableRowElement>;
-      trs.forEach((tr) => { tr.style.height = ""; });
-    };
+    const handleAfterPrint = () => clearRowHeights();
 
     window.addEventListener("beforeprint", handleBeforePrint);
     window.addEventListener("afterprint",  handleAfterPrint);
@@ -156,6 +182,72 @@ export default function AllergenForm() {
   }, [numRows]);
 
   const handlePrint = () => { window.print(); };
+
+  /** Génère un PDF A4 directement téléchargeable */
+  const handleDownloadPDF = async () => {
+    const el = printRef.current;
+    if (!el) return;
+    setPdfLoading(true);
+
+    try {
+      const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
+        import("html2canvas"),
+        import("jspdf"),
+      ]);
+
+      // 1. Masquer les éléments no-print
+      const noPrintEls = el.querySelectorAll<HTMLElement>(".no-print");
+      noPrintEls.forEach((e) => { e.style.display = "none"; });
+
+      // 2. Forcer les dimensions A4 sur le conteneur
+      const prevStyle = el.getAttribute("style") ?? "";
+      el.style.cssText = [
+        prevStyle,
+        `width:${INNER_W_PX}px !important`,
+        `height:${INNER_H_PX}px !important`,
+        `padding:8px !important`,
+        `border:1px solid #8890aa !important`,
+        `display:flex !important`,
+        `flex-direction:column !important`,
+        `box-sizing:border-box !important`,
+        `background:white !important`,
+      ].join(";");
+
+      // 3. Ajuster hauteur des lignes
+      applyRowHeights(INNER_H_PX);
+
+      // Petit délai pour laisser le layout se stabiliser
+      await new Promise((r) => setTimeout(r, 120));
+
+      // 4. Capturer
+      const canvas = await html2canvas(el, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+        width: INNER_W_PX,
+        height: INNER_H_PX,
+        windowWidth: INNER_W_PX,
+        windowHeight: INNER_H_PX,
+      });
+
+      // 5. Restaurer
+      el.setAttribute("style", prevStyle);
+      clearRowHeights();
+      noPrintEls.forEach((e) => { e.style.display = ""; });
+
+      // 6. Créer le PDF A4 et télécharger
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const imgData = canvas.toDataURL("image/jpeg", 0.97);
+      // Centrer le contenu dans les marges
+      pdf.addImage(imgData, "JPEG", 12, 10, 186, 277);
+      pdf.save("allergenes.pdf");
+    } catch (err) {
+      console.error(err);
+      toast({ title: "Erreur PDF", description: "Impossible de générer le PDF.", variant: "destructive" });
+    } finally {
+      setPdfLoading(false);
+    }
+  };
 
   const handlePinSuccess = () => {
     login();
@@ -210,9 +302,21 @@ export default function AllergenForm() {
             <Settings className="w-4 h-4 mr-1" />
             Base Ingrédients
           </Button>
-          <Button size="sm" onClick={handlePrint} data-testid="button-print">
+          <Button
+            variant="outline" size="sm"
+            onClick={handlePrint} data-testid="button-print"
+          >
             <Printer className="w-4 h-4 mr-1" />
             Imprimer
+          </Button>
+          <Button
+            size="sm"
+            onClick={handleDownloadPDF}
+            disabled={pdfLoading}
+            data-testid="button-pdf"
+          >
+            <Download className="w-4 h-4 mr-1" />
+            {pdfLoading ? "Génération…" : "Télécharger PDF"}
           </Button>
         </div>
       </div>
@@ -220,15 +324,15 @@ export default function AllergenForm() {
       {/* ── Zone imprimable ── */}
       <div ref={printRef} className="print-page p-4">
 
-        {/* En-tête : grand titre */}
+        {/* En-tête */}
         <div className="print-header mb-1">
           <h1
             className="font-black uppercase"
-            style={{ color: "#4a4e6a", letterSpacing: "-0.01em", lineHeight: 1 }}
+            style={{ color: "#4a4e6a", letterSpacing: "-0.01em", lineHeight: 1, fontSize: "2.5rem" }}
           >
             ALLERGÈNES
           </h1>
-          <p className="text-xs text-muted-foreground mt-0.5 print-subtitle">
+          <p className="print-subtitle text-xs mt-0.5" style={{ color: "#7076a0" }}>
             Allergènes à déclaration obligatoire — Règlement UE 1169/2011
           </p>
         </div>
@@ -239,7 +343,7 @@ export default function AllergenForm() {
           style={{ border: "1px solid #9096b0" }}
         >
           <div className="px-2 py-1" style={{ borderRight: "1px solid #9096b0" }}>
-            <div className="subheader-label">Type d'événement</div>
+            <div className="subheader-label text-[9px] uppercase tracking-wide mb-0.5" style={{ color: "#7076a0" }}>Type d'événement</div>
             <input
               value={eventType}
               onChange={(e) => setEventType(e.target.value)}
@@ -249,7 +353,7 @@ export default function AllergenForm() {
             />
           </div>
           <div className="px-2 py-1 text-center" style={{ borderRight: "1px solid #9096b0" }}>
-            <div className="subheader-label">Salle / Événement</div>
+            <div className="subheader-label text-[9px] uppercase tracking-wide mb-0.5" style={{ color: "#7076a0" }}>Salle / Événement</div>
             <input
               value={eventName}
               onChange={(e) => setEventName(e.target.value)}
@@ -259,7 +363,7 @@ export default function AllergenForm() {
             />
           </div>
           <div className="px-2 py-1 text-right">
-            <div className="subheader-label">Date</div>
+            <div className="subheader-label text-[9px] uppercase tracking-wide mb-0.5" style={{ color: "#7076a0" }}>Date</div>
             <span className="font-semibold text-foreground text-sm no-print">
               <input
                 type="date"
@@ -292,7 +396,6 @@ export default function AllergenForm() {
 
             <thead>
               <tr>
-                {/* Première cellule d'en-tête */}
                 <th
                   className="border text-center font-bold align-middle px-1 py-1"
                   style={{
@@ -306,8 +409,6 @@ export default function AllergenForm() {
                 >
                   ALLERGÈNES À<br />DÉCLARATION<br />OBLIGATOIRE
                 </th>
-
-                {/* Colonnes allergènes — en-têtes sobres, deux gris alternés */}
                 {ALLERGENS.map((a, idx) => (
                   <th
                     key={a.key}
@@ -341,7 +442,6 @@ export default function AllergenForm() {
                     </div>
                   </th>
                 ))}
-
                 <th
                   className="border no-print"
                   style={{ backgroundColor: "#e4e6ef", borderColor: "#9096b0" }}
