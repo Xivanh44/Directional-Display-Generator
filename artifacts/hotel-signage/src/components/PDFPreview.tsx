@@ -25,7 +25,7 @@ export function PDFPreview({ state, allLogos }: PDFPreviewProps) {
     (ARROW_MARGIN_PCT +
       (ARROW_HEIGHT_PCT * arrowScale * BANNER_HEIGHT_PCT * ARROW_WIDTH_RATIO) / aspectRatio) *
     100;
-  const SAFE_GAP_PCT = 2;
+  const SAFE_GAP_PCT = 5;
   const sidePadPct = arrow !== 'none' ? arrowReservedPct + SAFE_GAP_PCT : 5;
 
   const getGridClasses = () => {
