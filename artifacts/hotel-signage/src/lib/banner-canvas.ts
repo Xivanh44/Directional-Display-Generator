@@ -4,7 +4,6 @@ import {
   BANNER_HEIGHT_PCT,
   ARROW_HEIGHT_PCT,
   ARROW_WIDTH_RATIO,
-  ARROW_STROKE_RATIO,
   ARROW_MARGIN_PCT,
 } from './pdf-generator';
 
@@ -87,26 +86,29 @@ export async function renderBannerToCanvas(state: SignageState): Promise<HTMLCan
       }
       ctx.restore();
     } else {
-      // ── Default chevron ────────────────────────────────────────────────────
-      const strokeW = chevronH * ARROW_STROKE_RATIO;
-      ctx.strokeStyle = '#000000';
-      ctx.lineWidth = strokeW;
-      ctx.lineCap = 'butt';
-      ctx.lineJoin = 'miter';
-      ctx.miterLimit = 10;
-      ctx.beginPath();
-      if (isRight) {
-        const xLeft = canvasW - margin - chevronW;
-        ctx.moveTo(xLeft, yTop);
-        ctx.lineTo(xLeft + chevronW, yCtr);
-        ctx.lineTo(xLeft, yTop + chevronH);
-      } else {
-        const xRight = margin + chevronW;
-        ctx.moveTo(xRight, yTop);
-        ctx.lineTo(xRight - chevronW, yCtr);
-        ctx.lineTo(xRight, yTop + chevronH);
+      // ── Default chevron: U+3009 〉 / U+3008 〈 in bold ─────────────────────
+      const char = isRight ? '\u3009' : '\u3008';
+      ctx.save();
+      // Binary-search for the largest font size that fits within chevronH
+      let lo = 8;
+      let hi = chevronH * 1.8;
+      let bestSize = lo;
+      for (let i = 0; i < 24; i++) {
+        const mid = (lo + hi) / 2;
+        ctx.font = `bold ${mid}px serif`;
+        const m = ctx.measureText(char);
+        const charH = m.actualBoundingBoxAscent + m.actualBoundingBoxDescent;
+        if (charH <= chevronH) { bestSize = mid; lo = mid; } else { hi = mid; }
       }
-      ctx.stroke();
+      ctx.font = `bold ${bestSize}px serif`;
+      ctx.fillStyle = '#000000';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'alphabetic';
+      const m = ctx.measureText(char);
+      const charVisualH = m.actualBoundingBoxAscent + m.actualBoundingBoxDescent;
+      const charY = (canvasH - charVisualH) / 2 + m.actualBoundingBoxAscent;
+      ctx.fillText(char, xCtr, charY);
+      ctx.restore();
     }
   }
 
