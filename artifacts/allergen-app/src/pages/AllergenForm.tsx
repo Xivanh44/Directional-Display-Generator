@@ -159,7 +159,7 @@ export default function AllergenForm() {
       //  • thead (allergen-header-cell 44pt = 15.5 mm + padding 2pt) = 16.2 mm
       //  • print-footer  : 3 lignes × 6pt + padding = ~8 mm
       //  • espaces internes (gaps, padding print-page) : ~4 mm
-      const FIXED_MM = 50;
+      const FIXED_MM = 56;
 
       const availMM = PAGE_H_MM - FIXED_MM;
       const rowH    = Math.floor((availMM / trs.length) * MM_TO_PX);
@@ -269,7 +269,7 @@ export default function AllergenForm() {
           <img
             src={`${import.meta.env.BASE_URL}westotel-logo.png`}
             alt="Westotel"
-            className="h-24 object-contain"
+            className="h-32 object-contain"
             data-testid="img-logo"
           />
         </div>
@@ -335,8 +335,8 @@ export default function AllergenForm() {
                 <th
                   className="border border-primary text-center font-black align-middle px-1 py-1"
                   style={{
-                    backgroundColor: "hsl(var(--primary))",
-                    color: "white",
+                    backgroundColor: "#e8ecf0",
+                    color: "#1a3561",
                     fontSize: "9px",
                     lineHeight: 1.25,
                     verticalAlign: "middle",
