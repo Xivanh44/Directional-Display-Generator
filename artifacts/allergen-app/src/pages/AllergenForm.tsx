@@ -112,7 +112,7 @@ export default function AllergenForm() {
   useEffect(() => {
     const MM_TO_PX  = 3.7795275591;
     const PAGE_H_MM = 277;   // 297 mm − 10 mm × 2 marges @page
-    const FIXED_MM  = 55;    // titre + sous-en-tête + thead + pied + padding
+    const FIXED_MM  = 62;    // titre + sous-en-tête + thead + pied + padding + espacement
 
     const beforePrint = () => {
       const trs = Array.from(
@@ -197,13 +197,13 @@ export default function AllergenForm() {
         {/* Titre principal */}
         <div className="print-header mb-2">
           <h1 className="font-black uppercase"
-            style={{ color: BLUE, letterSpacing: "-0.01em", lineHeight: 1, fontSize: "2.875rem" }}>
+            style={{ color: BLUE, letterSpacing: "-0.01em", lineHeight: 1, fontSize: "3.3rem" }}>
             ALLERGÈNES
           </h1>
         </div>
 
         {/* Sous-en-tête : 3 cases */}
-        <div className="print-subheader print-subheader-grid grid grid-cols-3 mb-3"
+        <div className="print-subheader print-subheader-grid grid grid-cols-3 mb-5"
           style={{ border: `1px solid ${BORDER}` }}>
 
           {/* Case 1 : type d'événement */}

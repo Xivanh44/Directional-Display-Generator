@@ -248,7 +248,7 @@
   }
 
   h1 {
-    font-size: 32pt !important;
+    font-size: 37pt !important;
     line-height: 1 !important;
     margin: 0 !important;
     padding: 0 !important;
@@ -260,7 +260,7 @@
   /* ── Sous-en-tête 3 cases ── */
   .print-subheader {
     flex-shrink: 0;
-    margin-bottom: 4pt;
+    margin-bottom: 12pt;
   }
   .print-subheader-grid {
     display: grid !important;
