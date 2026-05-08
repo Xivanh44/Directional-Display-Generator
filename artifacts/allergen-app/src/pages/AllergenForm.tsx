@@ -266,12 +266,6 @@ export default function AllergenForm() {
           <h1 className="text-5xl font-black uppercase tracking-tight" style={{ color: "hsl(var(--primary))", letterSpacing: "-0.02em" }}>
             ALLERGÈNES
           </h1>
-          <img
-            src={`${import.meta.env.BASE_URL}westotel-logo.png`}
-            alt="Westotel"
-            className="h-32 object-contain"
-            data-testid="img-logo"
-          />
         </div>
 
         {/* ── Sous-en-tête : 3 champs ── */}
