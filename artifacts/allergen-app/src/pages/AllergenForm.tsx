@@ -108,11 +108,28 @@ export default function AllergenForm() {
   const addRow    = () => { if (numRows < MAX_ROWS) setNumRows((n) => n + 1); };
   const removeRow = () => { if (numRows > MIN_ROWS) setNumRows((n) => n - 1); };
 
-  // Nettoyage des hauteurs forcées après impression (au cas où)
+  // Autofit : répartit les lignes sur toute la hauteur disponible à l'impression
   useEffect(() => {
-    window.addEventListener("afterprint", clearRowHeights);
-    return () => window.removeEventListener("afterprint", clearRowHeights);
-  }, []);
+    const MM_TO_PX  = 3.7795275591;
+    const PAGE_H_MM = 277;   // 297 mm − 10 mm × 2 marges @page
+    const FIXED_MM  = 55;    // titre + sous-en-tête + thead + pied + padding
+
+    const beforePrint = () => {
+      const trs = Array.from(
+        document.querySelectorAll("table.allergen-table tbody tr")
+      ) as HTMLTableRowElement[];
+      if (!trs.length) return;
+      const h = Math.floor(((PAGE_H_MM - FIXED_MM) / trs.length) * MM_TO_PX);
+      trs.forEach((tr) => { tr.style.height = `${Math.max(h, 10)}px`; });
+    };
+
+    window.addEventListener("beforeprint", beforePrint);
+    window.addEventListener("afterprint",  clearRowHeights);
+    return () => {
+      window.removeEventListener("beforeprint", beforePrint);
+      window.removeEventListener("afterprint",  clearRowHeights);
+    };
+  }, [numRows]);
 
   const handlePrint = () => window.print();
 
@@ -245,9 +262,9 @@ export default function AllergenForm() {
             data-testid="table-allergens"
           >
             <colgroup>
-              <col className="col-name"    style={{ width: "178px" }} />
+              <col className="col-name"    style={{ width: "215px" }} />
               {ALLERGENS.map((a) => (
-                <col key={a.key} className="col-allergen" style={{ width: "42px" }} />
+                <col key={a.key} className="col-allergen" style={{ width: "35px" }} />
               ))}
               <col className="no-print"   style={{ width: "28px" }} />
             </colgroup>
