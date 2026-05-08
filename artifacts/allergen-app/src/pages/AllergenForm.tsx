@@ -108,28 +108,11 @@ export default function AllergenForm() {
   const addRow    = () => { if (numRows < MAX_ROWS) setNumRows((n) => n + 1); };
   const removeRow = () => { if (numRows > MIN_ROWS) setNumRows((n) => n - 1); };
 
-  // Ajustement des hauteurs de lignes pour l'impression navigateur
+  // Nettoyage des hauteurs forcées après impression (au cas où)
   useEffect(() => {
-    const MM_TO_PX  = 3.7795275591;
-    const PAGE_H_MM = 277;  // 297 mm − 10 mm × 2 de marges @page
-    const FIXED_MM  = 55;   // titre + sous-en-tête + thead + pied + padding
-    const rowH_px   = (mm: number) => Math.floor(mm * MM_TO_PX);
-
-    const beforePrint = () => {
-      const table = document.querySelector("table.allergen-table") as HTMLTableElement | null;
-      if (!table) return;
-      const trs = Array.from(table.querySelectorAll("tbody tr")) as HTMLTableRowElement[];
-      if (!trs.length) return;
-      const h = rowH_px((PAGE_H_MM - FIXED_MM) / trs.length);
-      trs.forEach((tr) => { tr.style.height = `${h}px`; });
-    };
-    window.addEventListener("beforeprint", beforePrint);
-    window.addEventListener("afterprint",  clearRowHeights);
-    return () => {
-      window.removeEventListener("beforeprint", beforePrint);
-      window.removeEventListener("afterprint",  clearRowHeights);
-    };
-  }, [numRows]);
+    window.addEventListener("afterprint", clearRowHeights);
+    return () => window.removeEventListener("afterprint", clearRowHeights);
+  }, []);
 
   const handlePrint = () => window.print();
 

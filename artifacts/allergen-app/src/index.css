@@ -299,11 +299,10 @@
 
   table.allergen-table {
     width: 100% !important;
-    height: 100% !important;
+    height: auto !important;
     table-layout: fixed !important;
     border-collapse: collapse !important;
     font-size: 7pt !important;
-    table-layout: fixed !important;
   }
 
   /* Largeurs de colonnes calculées pour tenir dans 186 mm ≈ 527 pt
@@ -339,9 +338,9 @@
     -webkit-print-color-adjust: exact;
   }
 
-  /* ── Lignes corps ── */
-  table.allergen-table tbody          { height: 100%; }
-  table.allergen-table tbody tr       { height: auto !important; }
+  /* ── Lignes corps — hauteur naturelle du contenu ── */
+  table.allergen-table tbody          { height: auto; }
+  table.allergen-table tbody tr       { height: auto !important; min-height: 10pt; }
 
   /* Zébrure blanc / bleu très clair */
   table.allergen-table tbody tr:nth-child(odd) {
