@@ -1,4 +1,4 @@
-name: Deploy hotel signage to GitHub Pages
+name: Deploy apps to GitHub Pages
 
 on:
   push:
@@ -36,11 +36,27 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build hotel signage app
+      - name: Build Affichages Hotel
         run: pnpm --filter @workspace/hotel-signage run build
         env:
           PORT: 4173
           BASE_PATH: /Directional-Display-Generator/
+
+      - name: Prepare site root
+        run: |
+          mkdir -p site
+          cp -R artifacts/hotel-signage/dist/public/* site/
+
+      - name: Build Allergenes Cocktail
+        run: pnpm --filter @workspace/allergen-app run build
+        env:
+          PORT: 4174
+          BASE_PATH: /Directional-Display-Generator/allergenes-cocktail/
+
+      - name: Add Allergenes Cocktail to site
+        run: |
+          mkdir -p site/allergenes-cocktail
+          cp -R artifacts/allergen-app/dist/public/* site/allergenes-cocktail/
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -48,7 +64,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: artifacts/hotel-signage/dist/public
+          path: site
 
   deploy:
     needs: build
