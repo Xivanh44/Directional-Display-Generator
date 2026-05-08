@@ -239,7 +239,7 @@
   }
   .print-subheader {
     flex-shrink: 0;
-    margin-bottom: 3pt;
+    margin-bottom: 10pt;
   }
   .print-footer {
     flex-shrink: 0;
@@ -338,7 +338,7 @@
 
   /* Titre ALLERGÈNES */
   h1 {
-    font-size: 22pt !important;
+    font-size: 32pt !important;
     line-height: 1 !important;
     margin: 0 !important;
     padding: 0 !important;

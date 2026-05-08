@@ -159,7 +159,7 @@ export default function AllergenForm() {
       //  • thead (allergen-header-cell 44pt = 15.5 mm + padding 2pt) = 16.2 mm
       //  • print-footer  : 3 lignes × 6pt + padding = ~8 mm
       //  • espaces internes (gaps, padding print-page) : ~4 mm
-      const FIXED_MM = 56;
+      const FIXED_MM = 64;
 
       const availMM = PAGE_H_MM - FIXED_MM;
       const rowH    = Math.floor((availMM / trs.length) * MM_TO_PX);
