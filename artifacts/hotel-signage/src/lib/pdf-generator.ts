@@ -26,7 +26,7 @@ export const BANNER_HEIGHT_PCT = 0.278;
 export const ARROW_HEIGHT_PCT = 0.77;  // chevron height / banner height
 export const ARROW_WIDTH_RATIO = 0.55; // chevron width / chevron height
 export const ARROW_STROKE_RATIO = 0.22; // stroke thickness / chevron height
-export const ARROW_MARGIN_PCT = 0;  // relative to page width
+export const ARROW_MARGIN_PCT = 0.045;  // relative to page width
 
 export const TEXT_OPTIONS = [
   'Déjeuner',
