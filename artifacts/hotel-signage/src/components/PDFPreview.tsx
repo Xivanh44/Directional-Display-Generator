@@ -32,10 +32,11 @@ export function PDFPreview({ state, allLogos }: PDFPreviewProps) {
   const getGridClasses = () => {
     if (count === 1) return "grid-cols-1 grid-rows-1";
     if (count === 2) return "grid-cols-2 grid-rows-1";
+    if (count === 3) return "grid-cols-3 grid-rows-1";
     if (count === 4) return "grid-cols-2 grid-rows-2";
     if (count === 6) return "grid-cols-3 grid-rows-2";
     if (count === 8) return "grid-cols-4 grid-rows-2";
-    return ""; // handled custom for 3, 5, 7
+    return ""; // handled custom for 5, 7
   };
 
   return (
@@ -133,19 +134,6 @@ export function PDFPreview({ state, allLogos }: PDFPreviewProps) {
             {count === 0 ? (
               <div className="w-full h-full flex items-center justify-center border-2 border-dashed border-gray-200 rounded-xl">
                 <span className="text-gray-400 font-medium">Sélectionnez 1 à 8 logos</span>
-              </div>
-            ) : count === 3 ? (
-              <div className="w-full h-full flex flex-col gap-4">
-                <div className="flex-1 min-h-0 grid grid-cols-2 gap-4">
-                  {selectedLogos.slice(0, 2).map((id) => (
-                    <LogoCell key={id} src={allLogos[id]} />
-                  ))}
-                </div>
-                <div className="flex-1 min-h-0 flex items-center justify-center">
-                  <div className="w-1/2 h-full">
-                    <LogoCell src={allLogos[selectedLogos[2]]} />
-                  </div>
-                </div>
               </div>
             ) : count === 5 ? (
               <div className="w-full h-full flex flex-col gap-4">
