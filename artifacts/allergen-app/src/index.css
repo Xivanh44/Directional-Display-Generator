@@ -204,7 +204,7 @@
 /* Print styles */
 @page {
   size: A4 portrait;
-  margin: 8mm 15mm;
+  margin: 10mm 12mm;
 }
 
 @media print {
@@ -212,7 +212,7 @@
     width: 210mm;
     height: 297mm;
     background: white !important;
-    color: black !important;
+    color: #2e3148 !important;
     margin: 0 !important;
     padding: 0 !important;
   }
@@ -221,30 +221,58 @@
     display: none !important;
   }
 
-  /* La zone imprimable occupe toute la page (hauteur = A4 - marges) */
+  /* Zone imprimable : cadre fin + flex colonne */
   .print-page {
     width: 100%;
-    height: calc(297mm - 16mm);   /* 297mm - 8mm top - 8mm bottom */
+    height: calc(297mm - 20mm); /* 297 - 10mm top - 10mm bottom */
     margin: 0;
-    padding: 0;
+    padding: 6pt 8pt;
     box-sizing: border-box;
     display: flex !important;
     flex-direction: column !important;
+    border: 1pt solid #8890aa;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
   }
 
-  /* En-tête et pied de page ne grandissent pas */
+  /* En-tête */
   .print-header {
     flex-shrink: 0;
-    margin-bottom: 2pt;
+    margin-bottom: 3pt;
   }
+
+  /* Sous-titre réglementaire */
+  .print-subtitle {
+    font-size: 6pt !important;
+    color: #7076a0 !important;
+    margin-top: 1pt !important;
+  }
+
+  /* Sous-en-tête : 3 cellules */
   .print-subheader {
     flex-shrink: 0;
-    margin-bottom: 10pt;
+    margin-bottom: 5pt;
   }
+  .print-subheader-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr 1fr !important;
+  }
+
+  /* Label discret au-dessus de chaque champ */
+  .subheader-label {
+    font-size: 5pt !important;
+    color: #7076a0 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.04em !important;
+    margin-bottom: 1pt !important;
+  }
+
+  /* Pied de page */
   .print-footer {
     flex-shrink: 0;
     margin-top: 3pt;
-    font-size: 6pt !important;
+    font-size: 5.5pt !important;
+    color: #606478 !important;
   }
 
   /* Le tableau prend tout l'espace restant */
@@ -258,66 +286,66 @@
 
   table.allergen-table {
     width: 100% !important;
-    height: 100% !important;      /* remplit le flex parent */
+    height: 100% !important;
     table-layout: fixed !important;
     border-collapse: collapse !important;
     font-size: 7pt !important;
   }
 
-  /* Colonne nom : fixe, le reste se répartit */
-  table.allergen-table col.col-name {
-    width: 115pt !important;
-  }
-  table.allergen-table col.col-allergen {
-    width: auto !important;
-  }
+  /* Colonne nom fixe, le reste se répartit */
+  table.allergen-table col.col-name  { width: 110pt !important; }
+  table.allergen-table col.col-allergen { width: auto !important; }
 
-  /* En-tête du tableau */
-  table.allergen-table thead tr {
-    height: auto !important;
-  }
+  /* En-têtes */
+  table.allergen-table thead tr { height: auto !important; }
   table.allergen-table .allergen-header-cell {
     height: 44pt !important;
     font-size: 5.5pt !important;
     padding: 2pt 1pt !important;
     line-height: 1.1 !important;
+    color: #2e3148 !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
   }
   table.allergen-table thead th {
     padding: 1pt !important;
-    font-size: 7pt !important;
+    font-size: 6.5pt !important;
     vertical-align: middle !important;
-  }
-
-  /* Les lignes data se répartissent équitablement */
-  table.allergen-table tbody {
-    height: 100%;
-  }
-  table.allergen-table tbody tr {
-    height: auto !important;
-  }
-
-  /* Zébrures à l'impression */
-  table.allergen-table tbody tr:nth-child(even) {
-    background-color: #f0f3f8 !important;
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
+
+  /* Couleurs en-tête alternées (gris sobre) */
+  table.allergen-table thead th:nth-child(even) {
+    background-color: #d8dae6 !important;
+  }
+  table.allergen-table thead th:nth-child(odd) {
+    background-color: #e4e6ef !important;
+  }
+
+  /* Corps */
+  table.allergen-table tbody { height: 100%; }
+  table.allergen-table tbody tr { height: auto !important; }
+
+  /* Zébrures gris très clair / blanc */
   table.allergen-table tbody tr:nth-child(odd) {
-    background-color: white !important;
-  }
-
-  /* Colonnes en-tête alternées à l'impression */
-  table.allergen-table thead th {
+    background-color: #ffffff !important;
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
+  table.allergen-table tbody tr:nth-child(even) {
+    background-color: #f1f2f6 !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
   table.allergen-table td {
     padding: 0 2pt !important;
     vertical-align: middle !important;
     font-size: 7pt !important;
   }
 
-  /* Input ingrédient : texte brut sans bordure */
+  /* Input ingrédient : texte brut */
   table.allergen-table input[type="text"] {
     border: none !important;
     background: transparent !important;
@@ -326,25 +354,30 @@
     font-size: 7pt !important;
     width: 100% !important;
     height: 100% !important;
+    color: #2e3148 !important;
   }
 
-  /* Marque X */
+  /* Marque ✕ */
   table.allergen-table td span {
-    font-size: 9pt !important;
+    font-size: 8pt !important;
     font-weight: bold !important;
+    color: #2e3148 !important;
   }
 
   table { page-break-inside: avoid; }
 
-  /* Titre ALLERGÈNES */
+  /* Titre principal */
   h1 {
-    font-size: 32pt !important;
+    font-size: 28pt !important;
     line-height: 1 !important;
     margin: 0 !important;
     padding: 0 !important;
+    color: #4a4e6a !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
   }
 
-  /* Masquer le placeholder dans les cases vides */
+  /* Masquer les placeholders */
   input::placeholder {
     color: transparent !important;
   }
@@ -355,16 +388,11 @@
     background: transparent !important;
     box-shadow: none !important;
     padding: 0 !important;
-    font-size: 7.5pt !important;
+    font-size: 7pt !important;
     font-weight: 600;
-    width: auto !important;
-    display: inline !important;
-  }
-
-  /* Grille sous-en-tête */
-  .print-subheader-grid {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr 1fr !important;
+    color: #2e3148 !important;
+    width: 100% !important;
+    display: block !important;
   }
 }
 
