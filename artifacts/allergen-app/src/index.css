@@ -330,7 +330,12 @@
 
   /* Logo */
   img[alt="Westotel"] {
-    height: 36pt !important;
+    height: 52pt !important;
+  }
+
+  /* Masquer le placeholder dans les cases vides */
+  input::placeholder {
+    color: transparent !important;
   }
 
   /* Inputs sous-en-tête → texte brut */

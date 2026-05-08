@@ -9,7 +9,7 @@ import { useManagerAuth } from "@/lib/manager-auth";
 import type { AllergenItem } from "@workspace/api-client-react";
 
 const MANAGER_PIN = "1234";
-const DEFAULT_ROWS = 18;
+const DEFAULT_ROWS = 30;
 const MIN_ROWS = 5;
 const MAX_ROWS = 50;
 
@@ -272,7 +272,7 @@ export default function AllergenForm() {
           <img
             src={`${import.meta.env.BASE_URL}westotel-logo.png`}
             alt="Westotel"
-            className="h-14 object-contain"
+            className="h-24 object-contain"
             data-testid="img-logo"
           />
         </div>
