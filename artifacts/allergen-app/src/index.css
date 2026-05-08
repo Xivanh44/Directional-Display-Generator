@@ -204,7 +204,7 @@
 /* Print styles */
 @page {
   size: A4 portrait;
-  margin: 8mm 6mm;
+  margin: 8mm 15mm;
 }
 
 @media print {
