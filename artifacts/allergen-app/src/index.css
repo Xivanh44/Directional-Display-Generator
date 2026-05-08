@@ -362,6 +362,14 @@
     overflow: hidden !important;
   }
 
+  /* Colonne nom : autorise le retour à la ligne */
+  table.allergen-table td:first-child {
+    overflow: visible !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+    vertical-align: middle !important;
+  }
+
   /* Masquer colonne "effacer" */
   table.allergen-table td.no-print,
   table.allergen-table th.no-print {

@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -12,14 +12,6 @@ const MANAGER_PIN = "1234";
 const DEFAULT_ROWS = 30;
 const MIN_ROWS = 5;
 const MAX_ROWS = 50;
-
-// A4 @ 96 dpi — zones utiles après marges @page (10 mm haut/bas, 12 mm côtés)
-const A4_H_PX  = 1123;
-const A4_W_PX  = 794;
-const MARGIN_H = Math.round(10 * 3.7795); // ≈ 38 px
-const MARGIN_V = Math.round(12 * 3.7795); // ≈ 45 px
-const INNER_W  = A4_W_PX - MARGIN_V * 2;  // ≈ 704 px
-const INNER_H  = A4_H_PX - MARGIN_H * 2;  // ≈ 1047 px
 
 // Couleur principale
 const BLUE   = "#1f355e";
@@ -67,21 +59,6 @@ function clearRowHeights() {
     .forEach((tr) => { tr.style.height = ""; });
 }
 
-/** Répartit la hauteur des lignes tbody pour remplir exactement innerH pixels. */
-function applyRowHeightsPx(innerH: number) {
-  const table = document.querySelector("table.allergen-table") as HTMLTableElement | null;
-  if (!table) return;
-  const trs = Array.from(table.querySelectorAll("tbody tr")) as HTMLTableRowElement[];
-  if (!trs.length) return;
-  const theadH  = (table.querySelector("thead")?.getBoundingClientRect().height) ?? 0;
-  const footerH = (document.querySelector(".print-footer") as HTMLElement | null)?.getBoundingClientRect().height ?? 0;
-  const headerH = (document.querySelector(".print-header") as HTMLElement | null)?.getBoundingClientRect().height ?? 0;
-  const subH    = (document.querySelector(".print-subheader") as HTMLElement | null)?.getBoundingClientRect().height ?? 0;
-  const PAD = 16; // padding .print-page (top + bottom) en px
-  const avail = innerH - headerH - subH - theadH - footerH - PAD * 2 - 8;
-  const rowH  = Math.floor(avail / trs.length);
-  trs.forEach((tr) => { tr.style.height = `${Math.max(rowH, 6)}px`; });
-}
 
 export default function AllergenForm() {
   const [, setLocation] = useLocation();
@@ -93,8 +70,6 @@ export default function AllergenForm() {
   const [numRows,    setNumRows]    = useState(DEFAULT_ROWS);
   const [rows,       setRows]       = useState<TableRow[]>(() => Array.from({ length: MAX_ROWS }, emptyRow));
   const [pinOpen,    setPinOpen]    = useState(false);
-  const [pdfLoading, setPdfLoading] = useState(false);
-  const printRef = useRef<HTMLDivElement>(null);
 
   const handleIngredientSelect = useCallback((rowIndex: number, item: AllergenItem | null) => {
     setRows((prev) => {
@@ -158,83 +133,15 @@ export default function AllergenForm() {
 
   const handlePrint = () => window.print();
 
-  /** Génère un PDF A4 téléchargeable. */
-  const handleDownloadPDF = async () => {
-    const el = printRef.current;
-    if (!el || pdfLoading) return;
-    setPdfLoading(true);
-    try {
-      const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
-        import("html2canvas"),
-        import("jspdf"),
-      ]);
-
-      // 1. Supprimer le focus (évite les effets de sélection)
-      (document.activeElement as HTMLElement | null)?.blur();
-
-      // 2. Masquer .no-print
-      const noPrint = el.querySelectorAll<HTMLElement>(".no-print");
-      noPrint.forEach((e) => { e.style.display = "none"; });
-
-      // 3. Afficher la date formatée, cacher l'input date
-      const dateSpan  = el.querySelector<HTMLElement>("[data-print-date]");
-      const dateInput = el.querySelector<HTMLInputElement>("input[type='date']");
-      if (dateSpan)  dateSpan.style.display  = "inline";
-      if (dateInput) dateInput.style.display = "none";
-
-      // 4. Effacer tous les placeholders (évite les "points parasites")
-      const allInputs = Array.from(el.querySelectorAll<HTMLInputElement>("input"));
-      const savedPH   = allInputs.map((inp) => inp.placeholder);
-      allInputs.forEach((inp) => { inp.placeholder = ""; });
-
-      // 5. Appliquer les dimensions A4 sur le conteneur
-      const prevStyle = el.getAttribute("style") ?? "";
-      Object.assign(el.style, {
-        width:        `${INNER_W}px`,
-        height:       `${INNER_H}px`,
-        padding:      "8px",
-        border:       `1px solid ${BORDER}`,
-        display:      "flex",
-        flexDirection:"column",
-        boxSizing:    "border-box",
-        background:   "white",
-        overflow:     "hidden",
-      });
-
-      // 6. Répartir les hauteurs de lignes
-      applyRowHeightsPx(INNER_H);
-      await new Promise((r) => setTimeout(r, 160));
-
-      // 7. Capturer
-      const canvas = await html2canvas(el, {
-        scale:        2,
-        useCORS:      true,
-        backgroundColor: "#ffffff",
-        width:        INNER_W,
-        height:       INNER_H,
-        windowWidth:  INNER_W,
-        windowHeight: INNER_H,
-      });
-
-      // 8. Restaurer tout
-      el.setAttribute("style", prevStyle);
-      clearRowHeights();
-      noPrint.forEach((e) => { e.style.display = ""; });
-      if (dateSpan)  dateSpan.style.display  = "";
-      if (dateInput) dateInput.style.display = "";
-      allInputs.forEach((inp, i) => { inp.placeholder = savedPH[i]; });
-
-      // 9. Créer et télécharger le PDF
-      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-      pdf.addImage(canvas.toDataURL("image/jpeg", 0.97), "JPEG", 12, 10, 186, 277);
-      pdf.save("allergenes.pdf");
-
-    } catch (err) {
-      console.error(err);
-      toast({ title: "Erreur PDF", description: "Impossible de générer le PDF.", variant: "destructive" });
-    } finally {
-      setPdfLoading(false);
-    }
+  /** Ouvre la boîte d'impression — l'utilisateur choisit "Enregistrer en PDF". */
+  const handleDownloadPDF = () => {
+    toast({
+      title: "Enregistrer en PDF",
+      description: "Dans la boîte de dialogue qui s'ouvre, sélectionnez « Enregistrer en PDF » comme destination.",
+      duration: 5000,
+    });
+    // Léger délai pour laisser le toast s'afficher avant l'ouverture du dialogue
+    setTimeout(() => window.print(), 300);
   };
 
   const handlePinSuccess = () => { login(); setPinOpen(false); setLocation("/admin"); };
@@ -277,15 +184,15 @@ export default function AllergenForm() {
           <Button variant="outline" size="sm" onClick={handlePrint} data-testid="button-print">
             <Printer className="w-4 h-4 mr-1" /> Imprimer
           </Button>
-          <Button size="sm" onClick={handleDownloadPDF} disabled={pdfLoading} data-testid="button-pdf">
+          <Button size="sm" onClick={handleDownloadPDF} data-testid="button-pdf">
             <Download className="w-4 h-4 mr-1" />
-            {pdfLoading ? "Génération…" : "Télécharger PDF"}
+            Télécharger PDF
           </Button>
         </div>
       </div>
 
       {/* ── Zone imprimable ── */}
-      <div ref={printRef} className="print-page p-4">
+      <div className="print-page p-4">
 
         {/* Titre principal */}
         <div className="print-header mb-2">

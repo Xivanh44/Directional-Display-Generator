@@ -83,6 +83,14 @@ export default function IngredientAutocomplete({ value, onSelect, onChange, rowI
 
   return (
     <div ref={containerRef} className="relative w-full">
+      {/* Texte imprimable — visible uniquement à l'impression, peut passer à la ligne */}
+      <span
+        className="hidden print:block text-[7pt] leading-tight px-[1pt]"
+        style={{ color: "#1f355e", wordBreak: "break-word", whiteSpace: "normal" }}
+        aria-hidden="true"
+      >
+        {query}
+      </span>
       <input
         ref={inputRef}
         type="text"
@@ -92,7 +100,7 @@ export default function IngredientAutocomplete({ value, onSelect, onChange, rowI
         onFocus={() => {
           if (query.trim().length > 0) setOpen(true);
         }}
-        className="w-full bg-transparent text-xs py-0.5 px-1 outline-none focus:bg-accent/30 rounded transition-colors print:bg-transparent"
+        className="w-full bg-transparent text-xs py-0.5 px-1 outline-none focus:bg-accent/30 rounded transition-colors print:hidden"
         placeholder="Rechercher un ingrédient..."
         autoComplete="off"
         data-testid={`input-ingredient-${rowIndex}`}
