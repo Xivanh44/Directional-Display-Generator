@@ -501,7 +501,7 @@ export default function AllergenForm() {
                       style={{
                         writingMode: "vertical-rl",
                         transform: "rotate(180deg)",
-                        fontSize: ALLERGEN_HEADER_FONT_SIZE,
+                        fontSize: "11pt",
                         lineHeight: 1.05,
                         padding: "5px 1px",
                         height: TABLE_HEADER_HEIGHT,
