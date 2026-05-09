@@ -69,7 +69,15 @@ const ARROW_LABEL: Record<ArrowType, string> = {
 const queryClient = new QueryClient();
 
 const basePath = (import.meta.env.BASE_URL as string).replace(/\/$/, '');
+const MANAGER_SETTINGS_KEY = 'hotel-signage-manager-settings-v1';
 
+type ManagerSettings = {
+  font: string;
+  arrowScale: number;
+  customArrowChar: string | null;
+  customArrowDataUrl: string | null;
+  customBannerDataUrl: string | null;
+};
 // ── Manager PIN dialog ────────────────────────────────────────────────────────
 const MANAGER_PIN = '1234';
 
@@ -195,45 +203,61 @@ function Main() {
   const arrowInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
 
-  // Load manager settings from server on mount
-  useEffect(() => {
-    fetch('/api/settings')
-      .then((r) => r.json())
-      .then((data) => {
-        setState((prev) => ({
-          ...prev,
-          font: data.font ?? prev.font,
-          arrowScale: data.arrowScale ?? prev.arrowScale,
-          customArrowChar: data.customArrowChar ?? null,
-          customArrowDataUrl: data.customArrowDataUrl ?? null,
-          customBannerDataUrl: data.customBannerDataUrl ?? null,
-        }));
-      })
-      .catch(() => { /* silently ignore if API unreachable */ });
-  }, []);
+// Load manager settings from local browser storage
+useEffect(() => {
+  try {
+    const raw = localStorage.getItem(MANAGER_SETTINGS_KEY);
+    if (!raw) return;
 
-  const saveManagerSettings = async () => {
-    setIsSavingSettings(true);
-    try {
-      const res = await fetch('/api/settings', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          font: state.font,
-          arrowScale: state.arrowScale,
-          customArrowChar: state.customArrowChar,
-          customArrowDataUrl: state.customArrowDataUrl,
-          customBannerDataUrl: state.customBannerDataUrl,
-        }),
-      });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      toast({ title: "Réglages enregistrés", description: "Ces paramètres sont maintenant les valeurs par défaut pour tous les appareils." });
-    } catch {
-      toast({ title: "Erreur", description: "Impossible d'enregistrer les réglages.", variant: "destructive" });
-    } finally {
-      setIsSavingSettings(false);
-    }
-  };
+    const data = JSON.parse(raw) as Partial<ManagerSettings>;
+
+    setState((prev) => ({
+      ...prev,
+      font: data.font ?? prev.font,
+      arrowScale: data.arrowScale ?? prev.arrowScale,
+      customArrowChar: data.customArrowChar ?? null,
+      customArrowDataUrl: data.customArrowDataUrl ?? null,
+      customBannerDataUrl: data.customBannerDataUrl ?? null,
+    }));
+  } catch {
+    // Ignore corrupted local settings
+  }
+}, []);
+
+const saveManagerSettings = async () => {
+  setIsSavingSettings(true);
+
+  try {
+    const settings: ManagerSettings = {
+      font: state.font,
+      arrowScale: state.arrowScale ?? 1,
+      customArrowChar: state.customArrowChar,
+      customArrowDataUrl: state.customArrowDataUrl,
+      customBannerDataUrl: state.customBannerDataUrl,
+    };
+
+    localStorage.setItem(MANAGER_SETTINGS_KEY, JSON.stringify(settings));
+
+    toast({
+      title: "Réglages enregistrés",
+      description: "Ces paramètres sont enregistrés sur ce navigateur.",
+    });
+  } catch (error) {
+    const isQuotaError =
+      error instanceof DOMException &&
+      (error.name === 'QuotaExceededError' || error.name === 'NS_ERROR_DOM_QUOTA_REACHED');
+
+    toast({
+      title: "Erreur",
+      description: isQuotaError
+        ? "Impossible d'enregistrer : le bandeau ou la flèche est probablement trop lourd. Réduis la taille de l'image puis réessaie."
+        : "Impossible d'enregistrer les réglages.",
+      variant: "destructive",
+    });
+  } finally {
+    setIsSavingSettings(false);
+  }
+};
 
   const a4Items = queue.filter(q => q.item.format === 'A4');
   const a3Items = queue.filter(q => q.item.format === 'A3');
