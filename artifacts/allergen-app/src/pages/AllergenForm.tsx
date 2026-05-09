@@ -21,7 +21,7 @@ const BORDER = "#3a5688";
 const SUBHEADER_FONT_SIZE = "14px";
 const TABLE_HEADER_HEIGHT = "99px"; // 76px + environ 30%
 const MAIN_HEADER_FONT_SIZE = "14px"; // deux fois plus gros que 7px
-const ALLERGEN_HEADER_FONT_SIZE = "11.25px"; // +50% par rapport à 7.5px
+const ALLERGEN_HEADER_FONT_SIZE = "13.25px"; // +50% par rapport à 7.5px
 
 const ALLERGENS = [
   { key: "lait", label: "Lait et lactose" },
