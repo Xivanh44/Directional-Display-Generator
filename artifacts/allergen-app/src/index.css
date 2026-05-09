@@ -464,3 +464,95 @@
     inset: -1px;
   }
 }
+/* Corrections présentation allergènes cocktail */
+
+/* Ligne Dînatoire / Nom du groupe / Date */
+.print-subheader {
+  align-items: stretch !important;
+}
+
+.print-subheader .subcell {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  min-height: 10mm !important;
+}
+
+.print-subheader .subcell input,
+.print-subheader .subcell span,
+.print-subheader .subheader-input {
+  font-size: 10pt !important;
+  line-height: 1.2 !important;
+  text-align: center !important;
+  vertical-align: middle !important;
+  color: #1f355e !important;
+}
+
+/* Première cellule du tableau : ALLERGÈNES À DÉCLARATION OBLIGATOIRE */
+.allergen-table .main-head {
+  font-size: 15pt !important;
+  line-height: 1.05 !important;
+  font-weight: 900 !important;
+  text-align: center !important;
+  vertical-align: middle !important;
+  color: #1f355e !important;
+}
+
+/* Ligne d'en-tête du tableau : +30% en hauteur */
+.allergen-table thead tr {
+  height: 39mm !important;
+}
+
+.allergen-table .vertical-head {
+  height: 39mm !important;
+}
+
+/* Noms des allergènes : +50% */
+.allergen-header-cell {
+  height: 39mm !important;
+  font-size: 9pt !important;
+  line-height: 1.05 !important;
+  font-weight: 800 !important;
+  color: #1f355e !important;
+}
+
+/* Même rendu en impression PDF */
+@media print {
+  .print-subheader .subcell {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    min-height: 10mm !important;
+  }
+
+  .print-subheader .subcell input,
+  .print-subheader .subcell span,
+  .print-subheader .subheader-input {
+    font-size: 10pt !important;
+    line-height: 1.2 !important;
+    text-align: center !important;
+    color: #1f355e !important;
+  }
+
+  .allergen-table .main-head {
+    font-size: 15pt !important;
+    line-height: 1.05 !important;
+    font-weight: 900 !important;
+    color: #1f355e !important;
+  }
+
+  .allergen-table thead tr,
+  .allergen-table .vertical-head,
+  .allergen-header-cell {
+    height: 39mm !important;
+  }
+
+  .allergen-header-cell {
+    font-size: 9pt !important;
+    line-height: 1.05 !important;
+    font-weight: 800 !important;
+    color: #1f355e !important;
+  }
+}
