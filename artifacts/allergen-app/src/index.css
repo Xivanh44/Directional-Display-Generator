@@ -516,7 +516,7 @@
 
   /* Première case : ALLERGÈNES À DÉCLARATION OBLIGATOIRE */
   table.allergen-table .allergen-main-head {
-    font-size: 14px !important;
+    font-size: 16px !important;
     line-height: 1.05 !important;
     font-weight: 800 !important;
     color: #1f355e !important;
@@ -529,7 +529,7 @@
   table.allergen-table thead th .allergen-header-cell {
     height: 110px !important;
     min-height: 110px !important;
-    font-size: 11pt !important;
+    font-size: 10pt !important;
     line-height: 1.05 !important;
     font-weight: 800 !important;
     color: #1f355e !important;
