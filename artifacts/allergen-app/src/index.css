@@ -236,7 +236,7 @@
     display: flex !important;
     flex-direction: column !important;
     overflow: hidden !important;
-    border: 1pt solid #3a5688;
+    border: none !important;
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
