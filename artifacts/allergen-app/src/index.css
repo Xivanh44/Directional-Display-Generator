@@ -556,3 +556,70 @@
     color: #1f355e !important;
   }
 }
+/* FORCE STYLE PDF / IMPRESSION - à laisser tout en bas du fichier */
+@media print {
+
+  /* Ligne Dînatoire / Nom du groupe / Date */
+  .print-subheader .subcell {
+    height: 11mm !important;
+    min-height: 11mm !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    padding: 0 2mm !important;
+  }
+
+  .print-subheader .subcell input,
+  .print-subheader .subcell span,
+  .print-subheader .subheader-input {
+    font-size: 10pt !important;
+    line-height: 1.1 !important;
+    text-align: center !important;
+    color: #1f355e !important;
+    font-weight: 700 !important;
+  }
+
+  /* Hauteur de la ligne d'en-tête du tableau : +30% */
+  .allergen-table thead tr,
+  .allergen-table thead th,
+  .allergen-table .vertical-head,
+  .allergen-table .main-head {
+    height: 39mm !important;
+    min-height: 39mm !important;
+  }
+
+  /* Première case : ALLERGÈNES À DÉCLARATION OBLIGATOIRE */
+  .allergen-table .main-head {
+    font-size: 15pt !important;
+    line-height: 1.05 !important;
+    font-weight: 900 !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+    color: #1f355e !important;
+    padding: 1mm !important;
+  }
+
+  /* Allergènes verticaux : Lait, Céréales, etc. */
+  .allergen-table .allergen-header-cell {
+    height: 39mm !important;
+    min-height: 39mm !important;
+    font-size: 9pt !important;
+    line-height: 1.05 !important;
+    font-weight: 800 !important;
+    color: #1f355e !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+  }
+
+  /* X dans le tableau */
+  .allergen-table .mark-cell {
+    font-size: 10pt !important;
+    font-weight: 800 !important;
+    color: #1f355e !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+  }
+}
