@@ -668,3 +668,18 @@
     color: #1f355e !important;
   }
 }
+/* SUPPRESSION DU CADRE AUTOUR DE LA PAGE IMPRIMÉE */
+@media print {
+  .print-page,
+  .print-frame {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
+  .print-page {
+    padding: 0 !important;
+    margin: 0 !important;
+    background: white !important;
+  }
+}
