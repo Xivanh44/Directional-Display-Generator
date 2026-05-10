@@ -548,23 +548,46 @@
     color: #1f355e !important;
   }
 }
-/* FOND GRIS TRÈS CLAIR - EN-TÊTES TABLEAU ALLERGÈNES */
+/* CORRECTION FINALE - FOND GRIS CLAIR + BORDURES TABLEAU ALLERGÈNES */
 
-/* Affichage écran */
+table.allergen-table {
+  border-collapse: collapse !important;
+}
+
+table.allergen-table th,
+table.allergen-table td {
+  border: 1px solid #8aa0c8 !important;
+}
+
 table.allergen-table thead th,
 table.allergen-table .allergen-main-head,
-table.allergen-table .allergen-vertical-head,
-table.allergen-table .allergen-header-cell {
+table.allergen-table .allergen-vertical-head {
   background-color: #f2f2f2 !important;
+  border: 1px solid #3a5688 !important;
+  border-bottom: 1px solid #3a5688 !important;
+}
+
+table.allergen-table thead th .allergen-header-cell {
+  background-color: transparent !important;
 }
 
 /* Impression / PDF */
 @media print {
+  table.allergen-table {
+    border-collapse: collapse !important;
+  }
+
+  table.allergen-table th,
+  table.allergen-table td {
+    border: 1px solid #8aa0c8 !important;
+  }
+
   table.allergen-table thead th,
   table.allergen-table .allergen-main-head,
-  table.allergen-table .allergen-vertical-head,
-  table.allergen-table .allergen-header-cell {
+  table.allergen-table .allergen-vertical-head {
     background-color: #f2f2f2 !important;
+    border: 1px solid #3a5688 !important;
+    border-bottom: 1px solid #3a5688 !important;
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
@@ -573,32 +596,13 @@ table.allergen-table .allergen-header-cell {
   table.allergen-table thead th:nth-child(even) {
     background-color: #f2f2f2 !important;
   }
-}
-/* RESTAURER LES BORDURES DES EN-TÊTES ALLERGÈNES */
-
-/* Écran */
-table.allergen-table thead th,
-table.allergen-table .allergen-main-head,
-table.allergen-table .allergen-vertical-head {
-  border: 1px solid #3a5688 !important;
-  border-bottom: 1px solid #3a5688 !important;
-}
-
-/* Sécurité si le fond gris masque la bordure */
-table.allergen-table thead th .allergen-header-cell {
-  box-shadow: inset 0 -1px 0 #3a5688 !important;
-}
-
-/* Impression / PDF */
-@media print {
-  table.allergen-table thead th,
-  table.allergen-table .allergen-main-head,
-  table.allergen-table .allergen-vertical-head {
-    border: 1px solid #3a5688 !important;
-    border-bottom: 1px solid #3a5688 !important;
-  }
 
   table.allergen-table thead th .allergen-header-cell {
-    box-shadow: inset 0 -1px 0 #3a5688 !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+  }
+
+  table.allergen-table tbody td {
+    border: 1px solid #8aa0c8 !important;
   }
 }
