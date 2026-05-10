@@ -606,3 +606,42 @@ table.allergen-table thead th .allergen-header-cell {
     border: 1px solid #8aa0c8 !important;
   }
 }
+/* SOUS-EN-TÊTE COCKTAIL - IMPRESSION / PDF
+   Un seul cadre visible autour des 3 champs + fond bleu très clair */
+@media print {
+  .print-subheader {
+    border: 1px solid #3a5688 !important;
+    background-color: #eaf3ff !important;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr 1fr !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .print-subheader > div {
+    border: none !important;
+    border-right: none !important;
+    background-color: #eaf3ff !important;
+    min-height: 34px !important;
+    height: 34px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    padding: 0 6px !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .print-subheader input,
+  .print-subheader span,
+  .subheader-input {
+    background: transparent !important;
+    border: none !important;
+    font-size: 14px !important;
+    line-height: 1.1 !important;
+    text-align: center !important;
+    color: #1f355e !important;
+    font-weight: 600 !important;
+  }
+}
