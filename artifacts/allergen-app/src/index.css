@@ -248,7 +248,7 @@
   }
 
   h1 {
-    font-size: 41pt !important;
+    font-size: 43pt !important;
     line-height: 1 !important;
     margin: 0 !important;
     padding: 0 !important;
@@ -283,8 +283,8 @@
   /* ── Pied de page ── */
   .print-footer {
     flex-shrink: 0;
-    margin-top: 2pt;
-    font-size: 5.5pt !important;
+    margin-top: 3pt;
+    font-size: 6.5pt !important;
     color: #4a6a9a !important;
   }
 
@@ -546,5 +546,31 @@
     font-size: 10pt !important;
     font-weight: 800 !important;
     color: #1f355e !important;
+  }
+}
+/* FOND GRIS TRÈS CLAIR - EN-TÊTES TABLEAU ALLERGÈNES */
+
+/* Affichage écran */
+table.allergen-table thead th,
+table.allergen-table .allergen-main-head,
+table.allergen-table .allergen-vertical-head,
+table.allergen-table .allergen-header-cell {
+  background-color: #f2f2f2 !important;
+}
+
+/* Impression / PDF */
+@media print {
+  table.allergen-table thead th,
+  table.allergen-table .allergen-main-head,
+  table.allergen-table .allergen-vertical-head,
+  table.allergen-table .allergen-header-cell {
+    background-color: #f2f2f2 !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  table.allergen-table thead th:nth-child(odd),
+  table.allergen-table thead th:nth-child(even) {
+    background-color: #f2f2f2 !important;
   }
 }
