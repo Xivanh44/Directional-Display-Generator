@@ -574,3 +574,31 @@ table.allergen-table .allergen-header-cell {
     background-color: #f2f2f2 !important;
   }
 }
+/* RESTAURER LES BORDURES DES EN-TÊTES ALLERGÈNES */
+
+/* Écran */
+table.allergen-table thead th,
+table.allergen-table .allergen-main-head,
+table.allergen-table .allergen-vertical-head {
+  border: 1px solid #3a5688 !important;
+  border-bottom: 1px solid #3a5688 !important;
+}
+
+/* Sécurité si le fond gris masque la bordure */
+table.allergen-table thead th .allergen-header-cell {
+  box-shadow: inset 0 -1px 0 #3a5688 !important;
+}
+
+/* Impression / PDF */
+@media print {
+  table.allergen-table thead th,
+  table.allergen-table .allergen-main-head,
+  table.allergen-table .allergen-vertical-head {
+    border: 1px solid #3a5688 !important;
+    border-bottom: 1px solid #3a5688 !important;
+  }
+
+  table.allergen-table thead th .allergen-header-cell {
+    box-shadow: inset 0 -1px 0 #3a5688 !important;
+  }
+}
