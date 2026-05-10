@@ -392,7 +392,7 @@ export default function AllergenForm() {
             <input
               value={eventName}
               onChange={(e) => setEventName(e.target.value)}
-              placeholder="Nom de la salle"
+              placeholder="Nom du groupe"
               className="subheader-input w-full bg-transparent font-bold outline-none placeholder:text-muted-foreground/40 uppercase"
               style={{
                 color: BLUE,
