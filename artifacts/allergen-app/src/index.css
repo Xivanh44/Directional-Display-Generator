@@ -306,9 +306,9 @@
   }
 
   /* Largeurs de colonnes pour tenir dans ~509 pt utiles
-     Col nom : 145 pt  — 15 allergènes × 24 pt = 360 pt  — total 505 pt ✓ */
-  table.allergen-table col.col-name    { width: 140pt !important; }
-  table.allergen-table col.col-allergen{ width: 24pt  !important; }
+     Col nom : 160 pt  — 15 allergènes × 23 pt = 345 pt  — total 505 pt ✓ */
+  table.allergen-table col.col-name    { width: 160pt !important; }
+  table.allergen-table col.col-allergen{ width: 23pt  !important; }
   table.allergen-table col.no-print    { display: none !important; width: 0 !important; }
 
   /* ── En-têtes ── */
