@@ -645,3 +645,37 @@ table.allergen-table thead th .allergen-header-cell {
     font-weight: 600 !important;
   }
 }
+/* CORRECTION LARGEUR TABLEAU - IMPRESSION / PDF
+   Empêche la dernière colonne "Aucun" d'être coupée avec les marges par défaut */
+@media print {
+  .print-page {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+  }
+
+  .allergen-table-wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+  }
+
+  table.allergen-table {
+    width: 100% !important;
+    max-width: 100% !important;
+    table-layout: fixed !important;
+  }
+
+  table.allergen-table col.col-name {
+    width: 32% !important;
+  }
+
+  table.allergen-table col.col-allergen {
+    width: 4.5% !important;
+  }
+
+  table.allergen-table col.no-print {
+    display: none !important;
+    width: 0 !important;
+  }
+}
