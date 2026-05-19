@@ -231,7 +231,7 @@
     width: 100%;
     height: calc(297mm - 20mm); /* marges @page = 10 mm × 2 */
     margin: 0;
-    padding: 6pt 8pt;
+    padding: 6pt 4pt;
     box-sizing: border-box;
     display: flex !important;
     flex-direction: column !important;
@@ -291,7 +291,7 @@
   /* ── Tableau : remplit l'espace restant ── */
   .allergen-table-wrapper {
     flex: 1 1 auto !important;
-    overflow: hidden !important;       /* pas de débordement horizontal */
+    overflow: visible !important;       /* pas de débordement horizontal */
     display: flex !important;
     flex-direction: column !important;
     min-height: 0;
@@ -643,39 +643,5 @@ table.allergen-table thead th .allergen-header-cell {
     text-align: center !important;
     color: #1f355e !important;
     font-weight: 600 !important;
-  }
-}
-/* CORRECTION LARGEUR TABLEAU - IMPRESSION / PDF
-   Empêche la dernière colonne "Aucun" d'être coupée avec les marges par défaut */
-@media print {
-  .print-page {
-    width: 100% !important;
-    max-width: 100% !important;
-    overflow: visible !important;
-  }
-
-  .allergen-table-wrapper {
-    width: 100% !important;
-    max-width: 100% !important;
-    overflow: visible !important;
-  }
-
-  table.allergen-table {
-    width: 100% !important;
-    max-width: 100% !important;
-    table-layout: fixed !important;
-  }
-
-  table.allergen-table col.col-name {
-    width: 32% !important;
-  }
-
-  table.allergen-table col.col-allergen {
-    width: 4.5% !important;
-  }
-
-  table.allergen-table col.no-print {
-    display: none !important;
-    width: 0 !important;
   }
 }
