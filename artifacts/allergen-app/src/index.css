@@ -212,8 +212,8 @@
 @media print {
   /* ── Reset de base ── */
   html, body {
-    width: 210mm;
-    height: 297mm;
+  width: 100%;
+  height: auto;
     background: white !important;
     color: #1f355e !important;
     margin: 0 !important;
