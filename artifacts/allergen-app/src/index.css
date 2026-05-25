@@ -697,7 +697,7 @@
   table.allergen-table tbody td:first-child textarea,
   table.allergen-table tbody td:first-child [contenteditable="true"],
   table.allergen-table tbody td:first-child * {
-    font-weight: 400 !important;
+    font-weight: 300 !important;
   }
 }
 /* CORRECTION IMPRESSION — évite que la bordure droite soit coupée */
