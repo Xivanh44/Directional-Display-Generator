@@ -645,3 +645,73 @@ table.allergen-table thead th .allergen-header-cell {
     font-weight: 600 !important;
   }
 }
+/* CORRECTION FINALE — tableau auto-ajusté sur A4 avec lignes variables */
+@media print {
+  .print-page {
+    height: calc(297mm - 20mm) !important;
+    min-height: calc(297mm - 20mm) !important;
+    max-height: calc(297mm - 20mm) !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+  }
+
+  .print-header,
+  .print-subheader,
+  .print-footer {
+    flex: 0 0 auto !important;
+  }
+
+  .allergen-table-wrapper {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow: hidden !important;
+    display: flex !important;
+  }
+
+  table.allergen-table {
+    width: 100% !important;
+    height: 100% !important;
+    table-layout: fixed !important;
+    border-collapse: collapse !important;
+  }
+
+  table.allergen-table thead {
+    height: 110px !important;
+  }
+
+  table.allergen-table tbody {
+    height: auto !important;
+  }
+
+  table.allergen-table tbody tr {
+    height: auto !important;
+  }
+
+  table.allergen-table td {
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 1px 2px !important;
+    vertical-align: middle !important;
+    line-height: 1.05 !important;
+  }
+
+  table.allergen-table td:first-child {
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  table.allergen-table input[type="text"] {
+    height: auto !important;
+    min-height: 0 !important;
+    line-height: 1.05 !important;
+    white-space: normal !important;
+  }
+}
