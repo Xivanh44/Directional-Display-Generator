@@ -700,3 +700,24 @@
     font-weight: 400 !important;
   }
 }
+/* CORRECTION IMPRESSION — évite que la bordure droite soit coupée */
+@media print {
+  .print-subheader,
+  .print-subheader-grid,
+  .allergen-table-wrapper {
+    width: calc(100% - 2mm) !important;
+    margin-right: 2mm !important;
+    box-sizing: border-box !important;
+  }
+
+  table.allergen-table {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    border-right: 1.5px solid #1f355e !important;
+  }
+
+  table.allergen-table th:last-child,
+  table.allergen-table td:last-child {
+    border-right: 1.5px solid #1f355e !important;
+  }
+}
