@@ -66,13 +66,15 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-/* LIGHT MODE */
+/* ═══════════════════════════════════════════
+   THÈME — LIGHT MODE
+   ═══════════════════════════════════════════ */
 :root {
-  --button-outline: rgba(0,0,0, .10);
-  --badge-outline: rgba(0,0,0, .05);
+  --button-outline: rgba(0, 0, 0, .10);
+  --badge-outline: rgba(0, 0, 0, .05);
   --opaque-button-border-intensity: -8;
-  --elevate-1: rgba(0,0,0, .03);
-  --elevate-2: rgba(0,0,0, .08);
+  --elevate-1: rgba(0, 0, 0, .03);
+  --elevate-2: rgba(0, 0, 0, .08);
 
   --background: 0 0% 98%;
   --foreground: 220 15% 15%;
@@ -113,39 +115,35 @@
   --app-font-serif: Georgia, serif;
   --app-font-mono: Menlo, monospace;
   --radius: .375rem;
-  --shadow-2xs: 0px 1px 2px 0px rgba(0,0,0,0.06);
-  --shadow-xs: 0px 1px 3px 0px rgba(0,0,0,0.08);
-  --shadow-sm: 0px 2px 4px 0px rgba(0,0,0,0.06), 0px 1px 2px -1px rgba(0,0,0,0.04);
-  --shadow: 0px 4px 6px 0px rgba(0,0,0,0.07), 0px 2px 4px -1px rgba(0,0,0,0.05);
-  --shadow-md: 0px 6px 10px 0px rgba(0,0,0,0.08), 0px 3px 6px -1px rgba(0,0,0,0.05);
-  --shadow-lg: 0px 10px 15px 0px rgba(0,0,0,0.08), 0px 4px 6px -1px rgba(0,0,0,0.05);
-  --shadow-xl: 0px 20px 25px 0px rgba(0,0,0,0.08), 0px 8px 10px -1px rgba(0,0,0,0.04);
-  --shadow-2xl: 0px 25px 50px 0px rgba(0,0,0,0.12);
+  --shadow-2xs: 0px 1px 2px 0px rgba(0, 0, 0, .06);
+  --shadow-xs: 0px 1px 3px 0px rgba(0, 0, 0, .08);
+  --shadow-sm: 0px 2px 4px 0px rgba(0, 0, 0, .06), 0px 1px 2px -1px rgba(0, 0, 0, .04);
+  --shadow: 0px 4px 6px 0px rgba(0, 0, 0, .07), 0px 2px 4px -1px rgba(0, 0, 0, .05);
+  --shadow-md: 0px 6px 10px 0px rgba(0, 0, 0, .08), 0px 3px 6px -1px rgba(0, 0, 0, .05);
+  --shadow-lg: 0px 10px 15px 0px rgba(0, 0, 0, .08), 0px 4px 6px -1px rgba(0, 0, 0, .05);
+  --shadow-xl: 0px 20px 25px 0px rgba(0, 0, 0, .08), 0px 8px 10px -1px rgba(0, 0, 0, .04);
+  --shadow-2xl: 0px 25px 50px 0px rgba(0, 0, 0, .12);
   --tracking-normal: 0em;
-  --spacing: 0.25rem;
+  --spacing: .25rem;
 
-  --sidebar-primary-border: hsl(var(--sidebar-primary));
   --sidebar-primary-border: hsl(from hsl(var(--sidebar-primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
-  --sidebar-accent-border: hsl(var(--sidebar-accent));
   --sidebar-accent-border: hsl(from hsl(var(--sidebar-accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
-  --primary-border: hsl(var(--primary));
   --primary-border: hsl(from hsl(var(--primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
-  --secondary-border: hsl(var(--secondary));
   --secondary-border: hsl(from hsl(var(--secondary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
-  --muted-border: hsl(var(--muted));
   --muted-border: hsl(from hsl(var(--muted)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
-  --accent-border: hsl(var(--accent));
   --accent-border: hsl(from hsl(var(--accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
-  --destructive-border: hsl(var(--destructive));
   --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
 }
 
+/* ═══════════════════════════════════════════
+   THÈME — DARK MODE
+   ═══════════════════════════════════════════ */
 .dark {
-  --button-outline: rgba(255,255,255, .10);
-  --badge-outline: rgba(255,255,255, .05);
+  --button-outline: rgba(255, 255, 255, .10);
+  --badge-outline: rgba(255, 255, 255, .05);
   --opaque-button-border-intensity: 9;
-  --elevate-1: rgba(255,255,255, .04);
-  --elevate-2: rgba(255,255,255, .09);
+  --elevate-1: rgba(255, 255, 255, .04);
+  --elevate-2: rgba(255, 255, 255, .09);
 
   --background: 220 20% 10%;
   --foreground: 220 10% 90%;
@@ -182,27 +180,37 @@
   --chart-4: 280 55% 55%;
   --chart-5: 340 65% 55%;
 
-  --shadow-2xs: 0px 1px 2px 0px rgba(0,0,0,0.3);
-  --shadow-xs: 0px 1px 3px 0px rgba(0,0,0,0.35);
-  --shadow-sm: 0px 2px 4px 0px rgba(0,0,0,0.3), 0px 1px 2px -1px rgba(0,0,0,0.25);
-  --shadow: 0px 4px 6px 0px rgba(0,0,0,0.32), 0px 2px 4px -1px rgba(0,0,0,0.25);
-  --shadow-md: 0px 6px 10px 0px rgba(0,0,0,0.35), 0px 3px 6px -1px rgba(0,0,0,0.25);
-  --shadow-lg: 0px 10px 15px 0px rgba(0,0,0,0.35), 0px 4px 6px -1px rgba(0,0,0,0.25);
-  --shadow-xl: 0px 20px 25px 0px rgba(0,0,0,0.35), 0px 8px 10px -1px rgba(0,0,0,0.2);
-  --shadow-2xl: 0px 25px 50px 0px rgba(0,0,0,0.5);
+  --shadow-2xs: 0px 1px 2px 0px rgba(0, 0, 0, .30);
+  --shadow-xs: 0px 1px 3px 0px rgba(0, 0, 0, .35);
+  --shadow-sm: 0px 2px 4px 0px rgba(0, 0, 0, .30), 0px 1px 2px -1px rgba(0, 0, 0, .25);
+  --shadow: 0px 4px 6px 0px rgba(0, 0, 0, .32), 0px 2px 4px -1px rgba(0, 0, 0, .25);
+  --shadow-md: 0px 6px 10px 0px rgba(0, 0, 0, .35), 0px 3px 6px -1px rgba(0, 0, 0, .25);
+  --shadow-lg: 0px 10px 15px 0px rgba(0, 0, 0, .35), 0px 4px 6px -1px rgba(0, 0, 0, .25);
+  --shadow-xl: 0px 20px 25px 0px rgba(0, 0, 0, .35), 0px 8px 10px -1px rgba(0, 0, 0, .20);
+  --shadow-2xl: 0px 25px 50px 0px rgba(0, 0, 0, .50);
 }
 
+/* ═══════════════════════════════════════════
+   BASE TAILWIND
+   ═══════════════════════════════════════════ */
 @layer base {
   * {
     @apply border-border;
   }
+
   body {
     @apply font-sans antialiased bg-background text-foreground;
   }
 }
 
 /* ═══════════════════════════════════════════
-   IMPRESSION / PDF — Fiche allergènes A4
+   IMPRESSION / PDF — FICHE ALLERGÈNES A4
+
+   Objectif :
+   - 1 seule page A4 portrait
+   - titre + sous-en-tête + tableau + pied de page
+   - le tableau prend tout l'espace restant
+   - les lignes peuvent grandir si le texte passe sur plusieurs lignes
    ═══════════════════════════════════════════ */
 @page {
   size: A4 portrait;
@@ -210,268 +218,29 @@
 }
 
 @media print {
-  /* ── Reset de base ── */
-  html, body {
-  width: 100%;
-  height: auto;
+  html,
+  body {
+    width: 100% !important;
+    min-height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
     background: white !important;
     color: #1f355e !important;
-    margin: 0 !important;
-    padding: 0 !important;
   }
 
-  /* Éléments masqués à l'impression */
-  .no-print { display: none !important; }
-
-  /* Date formatée visible à l'impression */
-  [data-print-date] { display: inline !important; }
-
-  /* ── Cadre principal A4 ── */
-  .print-page {
-    width: 100%;
-    height: calc(297mm - 20mm); /* marges @page = 10 mm × 2 */
-    margin: 0;
-    padding: 6pt 4pt;
-    box-sizing: border-box;
-    display: flex !important;
-    flex-direction: column !important;
-    overflow: hidden !important;
-    border: none !important;
+  body {
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
 
-  /* ── Titre ── */
-  .print-header {
-    flex-shrink: 0;
-    margin-bottom: 3pt;
-  }
-
-  h1 {
-    font-size: 43pt !important;
-    line-height: 1 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    color: #1f355e !important;
-    print-color-adjust: exact;
-    -webkit-print-color-adjust: exact;
-  }
-
-  /* ── Sous-en-tête 3 cases ── */
-  .print-subheader {
-    flex-shrink: 0;
-    margin-bottom: 12pt;
-  }
-  .print-subheader-grid {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr 1fr !important;
-  }
-
-  /* Inputs dans le sous-en-tête */
-  .subheader-input {
-    border: none !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-    font-size: 7.5pt !important;
-    font-weight: 600;
-    color: #1f355e !important;
-    width: 100% !important;
-    display: block !important;
-  }
-
-  /* ── Pied de page ── */
-  .print-footer {
-    flex-shrink: 0;
-    margin-top: 3pt;
-    font-size: 6.5pt !important;
-    color: #4a6a9a !important;
-  }
-
-  /* ── Tableau : remplit l'espace restant ── */
-  .allergen-table-wrapper {
-    flex: 1 1 auto !important;
-    overflow: visible !important;       /* pas de débordement horizontal */
-    display: flex !important;
-    flex-direction: column !important;
-    min-height: 0;
-  }
-
-  table.allergen-table {
-    width: 100% !important;
-    height: 100% !important;
-    table-layout: fixed !important;
-    border-collapse: collapse !important;
-    font-size: 7pt !important;
-  }
-
-  /* Largeurs de colonnes pour tenir dans ~509 pt utiles
-     Col nom : 165 pt  — 15 allergènes × 21 pt = 315 pt  — total 480 pt ✓ */
-  table.allergen-table col.col-name    { width: 165pt !important; }
-  table.allergen-table col.col-allergen{ width: 21pt  !important; }
-  table.allergen-table col.no-print    { display: none !important; width: 0 !important; }
-
-  /* ── En-têtes ── */
-  table.allergen-table thead tr { height: auto !important; }
-
-  table.allergen-table thead th {
-    padding: 0 !important;
-    vertical-align: middle !important;
-    overflow: hidden !important;
-    print-color-adjust: exact;
-    -webkit-print-color-adjust: exact;
-  }
-
-  /* Alternance bleu-gris clair */
-  table.allergen-table thead th:nth-child(odd)  { background-color: #dde3ef !important; }
-  table.allergen-table thead th:nth-child(even) { background-color: #ccd4e8 !important; }
-
-  /* Cellule de texte vertical */
-  table.allergen-table .allergen-header-cell {
-    height: 60pt !important;
-    font-size: 4pt !important;
-    line-height: 1.2 !important;
-    padding: 2pt 1pt !important;
-    color: #1f355e !important;
-    overflow: hidden !important;
-    print-color-adjust: exact;
-    -webkit-print-color-adjust: exact;
-  }
-
-  /* ── Lignes corps — autofit via JS + fallback CSS ── */
-  table.allergen-table tbody          { height: 100%; }
-  table.allergen-table tbody tr       { height: auto !important; }
-
-  /* Zébrure blanc / bleu très clair */
-  table.allergen-table tbody tr:nth-child(odd) {
-    background-color: #ffffff !important;
-    print-color-adjust: exact;
-    -webkit-print-color-adjust: exact;
-  }
-  table.allergen-table tbody tr:nth-child(even) {
-    background-color: #eef0f6 !important;
-    print-color-adjust: exact;
-    -webkit-print-color-adjust: exact;
-  }
-
-  table.allergen-table td {
-    padding: 0 1pt !important;
-    vertical-align: middle !important;
-    font-size: 6pt !important;
-    overflow: hidden !important;
-    height: 13pt !important; /* plancher visible pour les lignes vides */
-  }
-
-  /* Colonne nom : autorise le retour à la ligne */
-  table.allergen-table td:first-child {
-    overflow: visible !important;
-    white-space: normal !important;
-    word-break: break-word !important;
-    vertical-align: middle !important;
-  }
-
-  /* Masquer colonne "effacer" */
-  table.allergen-table td.no-print,
-  table.allergen-table th.no-print {
+  .no-print {
     display: none !important;
-    width: 0 !important;
-    padding: 0 !important;
   }
 
-  /* Input ingrédient : texte pur */
-  table.allergen-table input[type="text"] {
-    border: none !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    outline: none !important;
-    padding: 0 1pt !important;
-    font-size: 5pt !important;
-    width: 100% !important;
-    height: 100% !important;
-    color: #1f355e !important;
+  [data-print-date] {
+    display: inline !important;
   }
 
-  /* Marque X */
-  table.allergen-table td span {
-    font-size: 8pt !important;
-    font-weight: 700 !important;
-    color: #1f355e !important;
-  }
-
-  /* Pas de saut de page dans le tableau */
-  table { page-break-inside: avoid; }
-
-  /* Masquer tous les placeholders */
-  input::placeholder { color: transparent !important; }
-}
-
-@layer utilities {
-  input[type="search"]::-webkit-search-cancel-button {
-    @apply hidden;
-  }
-  [contenteditable][data-placeholder]:empty::before {
-    content: attr(data-placeholder);
-    color: hsl(var(--muted-foreground));
-    pointer-events: none;
-  }
-  .no-default-hover-elevate {}
-  .no-default-active-elevate {}
-  .toggle-elevate::before,
-  .toggle-elevate-2::before {
-    content: "";
-    pointer-events: none;
-    position: absolute;
-    inset: 0px;
-    border-radius: inherit;
-    z-index: -1;
-  }
-  .toggle-elevate.toggle-elevated::before {
-    background-color: var(--elevate-2);
-  }
-  .border.toggle-elevate::before {
-    inset: -1px;
-  }
-  .hover-elevate:not(.no-default-hover-elevate),
-  .active-elevate:not(.no-default-active-elevate),
-  .hover-elevate-2:not(.no-default-hover-elevate),
-  .active-elevate-2:not(.no-default-active-elevate) {
-    position: relative;
-    z-index: 0;
-  }
-  .hover-elevate:not(.no-default-hover-elevate)::after,
-  .active-elevate:not(.no-default-active-elevate)::after,
-  .hover-elevate-2:not(.no-default-hover-elevate)::after,
-  .active-elevate-2:not(.no-default-active-elevate)::after {
-    content: "";
-    pointer-events: none;
-    position: absolute;
-    inset: 0px;
-    border-radius: inherit;
-    z-index: 999;
-  }
-  .hover-elevate:hover:not(.no-default-hover-elevate)::after,
-  .active-elevate:active:not(.no-default-active-elevate)::after {
-    background-color: var(--elevate-1);
-  }
-  .hover-elevate-2:hover:not(.no-default-hover-elevate)::after,
-  .active-elevate-2:active:not(.no-default-active-elevate)::after {
-    background-color: var(--elevate-2);
-  }
-  .border.hover-elevate:not(.no-hover-interaction-elevate)::after,
-  .border.active-elevate:not(.no-active-interaction-elevate)::after,
-  .border.hover-elevate-2:not(.no-hover-interaction-elevate)::after,
-  .border.active-elevate-2:not(.no-active-interaction-elevate)::after {
-    inset: -1px;
-  }
-}
-/* Corrections présentation allergènes cocktail */
-/* ═══════════════════════════════════════════
-   CORRECTION FINALE IMPRESSION ALLERGÈNES
-   À LAISSER TOUT EN BAS DU FICHIER
-   ═══════════════════════════════════════════ */
-
-@media print {
-  /* Supprime le cadre extérieur */
   .print-page,
   .print-frame {
     border: none !important;
@@ -480,32 +249,139 @@
   }
 
   .print-page {
-    padding: 0 !important;
+    width: 100% !important;
+    height: calc(297mm - 20mm) !important;
+    min-height: calc(297mm - 20mm) !important;
+    max-height: calc(297mm - 20mm) !important;
     margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
     background: white !important;
+    color: #1f355e !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
   }
 
-  /* Ligne Dînatoire / Nom groupe / Date */
-  .print-subheader > div {
+  .print-header {
+    flex: 0 0 auto !important;
+    margin: 0 0 3pt 0 !important;
+    padding: 0 !important;
+  }
+
+  h1 {
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 43pt !important;
+    line-height: 1 !important;
+    color: #1f355e !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .print-subheader,
+  .print-subheader-grid {
+    flex: 0 0 auto !important;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr 1fr !important;
+    margin: 0 0 6pt 0 !important;
+    padding: 0 !important;
+    border: 1px solid #3a5688 !important;
+    background-color: #eaf3ff !important;
+    box-sizing: border-box !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .print-subheader > div,
+  .print-subheader-grid > div {
     min-height: 34px !important;
     height: 34px !important;
+    padding: 0 6px !important;
+    border: none !important;
+    background-color: #eaf3ff !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     text-align: center !important;
+    box-sizing: border-box !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
   }
 
   .print-subheader input,
   .print-subheader span,
+  .print-subheader-grid input,
+  .print-subheader-grid span,
   .subheader-input {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    color: #1f355e !important;
     font-size: 14px !important;
+    font-weight: 600 !important;
     line-height: 1.1 !important;
     text-align: center !important;
-    color: #1f355e !important;
-    font-weight: 600 !important;
   }
 
-  /* Hauteur de l'en-tête du tableau */
+  .print-footer {
+    flex: 0 0 auto !important;
+    margin: 3pt 0 0 0 !important;
+    padding: 0 !important;
+    font-size: 6.5pt !important;
+    line-height: 1.1 !important;
+    color: #4a6a9a !important;
+  }
+
+  .allergen-table-wrapper {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    box-sizing: border-box !important;
+  }
+
+  table.allergen-table {
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-collapse: collapse !important;
+    table-layout: fixed !important;
+    font-size: 7pt !important;
+    color: #1f355e !important;
+    box-sizing: border-box !important;
+    page-break-inside: avoid !important;
+  }
+
+  table.allergen-table col.col-name {
+    width: 165pt !important;
+  }
+
+  table.allergen-table col.col-allergen {
+    width: 21pt !important;
+  }
+
+  table.allergen-table col.no-print {
+    display: none !important;
+    width: 0 !important;
+  }
+
+  table.allergen-table thead {
+    height: 110px !important;
+  }
+
   table.allergen-table thead tr,
   table.allergen-table thead th,
   table.allergen-table .allergen-main-head,
@@ -514,134 +390,210 @@
     min-height: 110px !important;
   }
 
-  /* Première case : ALLERGÈNES À DÉCLARATION OBLIGATOIRE */
-  table.allergen-table .allergen-main-head {
-    font-size: 18px !important;
-    line-height: 1.05 !important;
-    font-weight: 800 !important;
-    color: #1f355e !important;
-    text-align: center !important;
-    vertical-align: middle !important;
-    padding: 4px 2px !important;
-  }
-
-  /* Allergènes verticaux : Lait, Céréales, Fruits à coque, etc. */
-  table.allergen-table thead th .allergen-header-cell {
-    height: 110px !important;
-    min-height: 110px !important;
-    font-size: 6pt !important;
-    line-height: 1.05 !important;
-    font-weight: 700 !important;
-    color: #1f355e !important;
-    padding: 5px 1px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    text-align: center !important;
-    overflow: hidden !important;
-  }
-
-  /* X dans le tableau */
-  table.allergen-table td span {
-    font-size: 9pt !important;
-    font-weight: 800 !important;
-    color: #1f355e !important;
-  }
-}
-/* CORRECTION FINALE - FOND GRIS CLAIR + BORDURES TABLEAU ALLERGÈNES */
-
-table.allergen-table {
-  border-collapse: collapse !important;
-}
-
-table.allergen-table th,
-table.allergen-table td {
-  border: 1px solid #8aa0c8 !important;
-}
-
-table.allergen-table thead th,
-table.allergen-table .allergen-main-head,
-table.allergen-table .allergen-vertical-head {
-  background-color: #f2f2f2 !important;
-  border: 1px solid #3a5688 !important;
-  border-bottom: 1px solid #3a5688 !important;
-}
-
-table.allergen-table thead th .allergen-header-cell {
-  background-color: transparent !important;
-}
-
-/* Impression / PDF */
-@media print {
-  table.allergen-table {
-    border-collapse: collapse !important;
-  }
-
   table.allergen-table th,
   table.allergen-table td {
     border: 1px solid #8aa0c8 !important;
+    box-sizing: border-box !important;
   }
 
   table.allergen-table thead th,
   table.allergen-table .allergen-main-head,
   table.allergen-table .allergen-vertical-head {
+    padding: 0 !important;
+    overflow: hidden !important;
+    vertical-align: middle !important;
     background-color: #f2f2f2 !important;
     border: 1px solid #3a5688 !important;
-    border-bottom: 1px solid #3a5688 !important;
+    color: #1f355e !important;
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
 
-  table.allergen-table thead th:nth-child(odd),
-  table.allergen-table thead th:nth-child(even) {
-    background-color: #f2f2f2 !important;
+  table.allergen-table .allergen-main-head {
+    padding: 4px 2px !important;
+    font-size: 18px !important;
+    font-weight: 800 !important;
+    line-height: 1.05 !important;
+    text-align: center !important;
   }
 
   table.allergen-table thead th .allergen-header-cell {
-    background-color: transparent !important;
-    box-shadow: none !important;
-  }
-
-  table.allergen-table tbody td {
-    border: 1px solid #8aa0c8 !important;
-  }
-}
-/* SOUS-EN-TÊTE COCKTAIL - IMPRESSION / PDF
-   Un seul cadre visible autour des 3 champs + fond bleu très clair */
-@media print {
-  .print-subheader {
-    border: 1px solid #3a5688 !important;
-    background-color: #eaf3ff !important;
-    display: grid !important;
-    grid-template-columns: 1fr 1fr 1fr !important;
-    print-color-adjust: exact;
-    -webkit-print-color-adjust: exact;
-  }
-
-  .print-subheader > div {
-    border: none !important;
-    border-right: none !important;
-    background-color: #eaf3ff !important;
-    min-height: 34px !important;
-    height: 34px !important;
+    height: 110px !important;
+    min-height: 110px !important;
+    padding: 5px 1px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
+    overflow: hidden !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: #1f355e !important;
+    font-size: 6pt !important;
+    font-weight: 700 !important;
+    line-height: 1.05 !important;
     text-align: center !important;
-    padding: 0 6px !important;
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
 
-  .print-subheader input,
-  .print-subheader span,
-  .subheader-input {
-    background: transparent !important;
-    border: none !important;
-    font-size: 14px !important;
-    line-height: 1.1 !important;
-    text-align: center !important;
+  table.allergen-table tbody {
+    height: auto !important;
+  }
+
+  table.allergen-table tbody tr {
+    height: auto !important;
+    page-break-inside: avoid !important;
+  }
+
+  table.allergen-table tbody tr:nth-child(odd) {
+    background-color: #ffffff !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  table.allergen-table tbody tr:nth-child(even) {
+    background-color: #eef0f6 !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  table.allergen-table td {
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 1px 2px !important;
+    overflow: hidden !important;
+    vertical-align: middle !important;
+    font-size: 6pt !important;
+    line-height: 1.05 !important;
     color: #1f355e !important;
-    font-weight: 600 !important;
+  }
+
+  table.allergen-table td:first-child {
+    overflow: visible !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  table.allergen-table td.no-print,
+  table.allergen-table th.no-print {
+    display: none !important;
+    width: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+  }
+
+  table.allergen-table input[type="text"],
+  table.allergen-table textarea,
+  table.allergen-table [contenteditable="true"] {
+    width: 100% !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 1pt !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    color: #1f355e !important;
+    font-size: 5pt !important;
+    line-height: 1.05 !important;
+  }
+
+  table.allergen-table textarea,
+  table.allergen-table [contenteditable="true"] {
+    height: auto !important;
+    resize: none !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  table.allergen-table input[type="text"] {
+    height: 100% !important;
+  }
+
+  table.allergen-table td span {
+    font-size: 9pt !important;
+    font-weight: 800 !important;
+    line-height: 1 !important;
+    color: #1f355e !important;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: transparent !important;
+  }
+}
+
+/* ═══════════════════════════════════════════
+   UTILITAIRES
+   ═══════════════════════════════════════════ */
+@layer utilities {
+  input[type="search"]::-webkit-search-cancel-button {
+    @apply hidden;
+  }
+
+  [contenteditable][data-placeholder]:empty::before {
+    content: attr(data-placeholder);
+    color: hsl(var(--muted-foreground));
+    pointer-events: none;
+  }
+
+  .no-default-hover-elevate {}
+  .no-default-active-elevate {}
+
+  .toggle-elevate::before,
+  .toggle-elevate-2::before {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    z-index: -1;
+  }
+
+  .toggle-elevate.toggle-elevated::before {
+    background-color: var(--elevate-2);
+  }
+
+  .border.toggle-elevate::before {
+    inset: -1px;
+  }
+
+  .hover-elevate:not(.no-default-hover-elevate),
+  .active-elevate:not(.no-default-active-elevate),
+  .hover-elevate-2:not(.no-default-hover-elevate),
+  .active-elevate-2:not(.no-default-active-elevate) {
+    position: relative;
+    z-index: 0;
+  }
+
+  .hover-elevate:not(.no-default-hover-elevate)::after,
+  .active-elevate:not(.no-default-active-elevate)::after,
+  .hover-elevate-2:not(.no-default-hover-elevate)::after,
+  .active-elevate-2:not(.no-default-active-elevate)::after {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    z-index: 999;
+  }
+
+  .hover-elevate:hover:not(.no-default-hover-elevate)::after,
+  .active-elevate:active:not(.no-default-active-elevate)::after {
+    background-color: var(--elevate-1);
+  }
+
+  .hover-elevate-2:hover:not(.no-default-hover-elevate)::after,
+  .active-elevate-2:active:not(.no-default-active-elevate)::after {
+    background-color: var(--elevate-2);
+  }
+
+  .border.hover-elevate:not(.no-hover-interaction-elevate)::after,
+  .border.active-elevate:not(.no-active-interaction-elevate)::after,
+  .border.hover-elevate-2:not(.no-hover-interaction-elevate)::after,
+  .border.active-elevate-2:not(.no-active-interaction-elevate)::after {
+    inset: -1px;
   }
 }
