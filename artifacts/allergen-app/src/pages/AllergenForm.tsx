@@ -19,9 +19,9 @@ const BORDER = "#3a5688";
 
 // Dimensions demandées
 const SUBHEADER_FONT_SIZE = "14px";
-const TABLE_HEADER_HEIGHT = "99px"; // 76px + environ 30%
-const MAIN_HEADER_FONT_SIZE = "18px"; // deux fois plus gros que 7px
-const ALLERGEN_HEADER_FONT_SIZE = "9pt"; // +50% par rapport à 7.5px
+const TABLE_HEADER_HEIGHT = "99px";
+const MAIN_HEADER_FONT_SIZE = "18px";
+const ALLERGEN_HEADER_FONT_SIZE = "9pt";
 
 const ALLERGENS = [
   { key: "lait", label: "Lait et lactose" },
@@ -71,13 +71,117 @@ function emptyRow(): TableRow {
   };
 }
 
-function clearRowHeights() {
-  (
-    document.querySelectorAll(
-      "table.allergen-table tbody tr"
-    ) as NodeListOf<HTMLTableRowElement>
-  ).forEach((tr) => {
-    tr.style.height = "";
+function clearAllergenTablePrintStyles() {
+  const table = document.querySelector("table.allergen-table") as HTMLTableElement | null;
+  const rows = Array.from(
+    document.querySelectorAll("table.allergen-table tbody tr")
+  ) as HTMLTableRowElement[];
+
+  if (table) {
+    table.style.height = "";
+    table.style.fontSize = "";
+  }
+
+  rows.forEach((row) => {
+    row.style.height = "";
+    row.style.minHeight = "";
+
+    Array.from(row.cells).forEach((cell) => {
+      cell.style.height = "";
+      cell.style.minHeight = "";
+      cell.style.paddingTop = "";
+      cell.style.paddingBottom = "";
+      cell.style.lineHeight = "";
+    });
+  });
+}
+
+function fitAllergenTableToA4() {
+  const page = document.querySelector(".print-page") as HTMLElement | null;
+  const wrapper = document.querySelector(".allergen-table-wrapper") as HTMLElement | null;
+  const table = document.querySelector("table.allergen-table") as HTMLTableElement | null;
+  const thead = document.querySelector("table.allergen-table thead") as HTMLTableSectionElement | null;
+  const rows = Array.from(
+    document.querySelectorAll("table.allergen-table tbody tr")
+  ) as HTMLTableRowElement[];
+
+  if (!page || !wrapper || !table || !thead || rows.length === 0) return;
+
+  // Reset avant chaque nouveau calcul.
+  clearAllergenTablePrintStyles();
+
+  // Force le navigateur à recalculer les hauteurs naturelles.
+  void table.offsetHeight;
+
+  requestAnimationFrame(() => {
+    const pageHeight = page.getBoundingClientRect().height;
+    const wrapperHeight = wrapper.getBoundingClientRect().height;
+    const theadHeight = thead.getBoundingClientRect().height;
+
+    // Sécurité : A4 utile = 297 mm - 20 mm de marges @page.
+    // Conversion navigateur classique : 1 mm ≈ 3.7795 px.
+    const fallbackA4Height = 277 * 3.7795275591;
+    const usableWrapperHeight =
+      wrapperHeight > 100
+        ? wrapperHeight
+        : Math.max(fallbackA4Height - theadHeight, 300);
+
+    const availableBodyHeight = Math.max(
+      usableWrapperHeight - theadHeight,
+      pageHeight > 100 ? pageHeight * 0.55 : 300
+    );
+
+    if (availableBodyHeight <= 0) return;
+
+    const naturalRows = rows.map((row) => ({
+      row,
+      height: row.getBoundingClientRect().height,
+    }));
+
+    const naturalRowsHeight = naturalRows.reduce(
+      (total, item) => total + item.height,
+      0
+    );
+
+    table.style.height = "100%";
+
+    // Cas normal : les lignes naturelles sont trop courtes.
+    // On répartit l'espace libre entre toutes les lignes.
+    if (naturalRowsHeight < availableBodyHeight) {
+      const extraSpace = availableBodyHeight - naturalRowsHeight;
+      const extraPerRow = extraSpace / rows.length;
+
+      naturalRows.forEach(({ row, height }) => {
+        const newHeight = Math.max(height + extraPerRow, 10);
+        row.style.height = `${newHeight}px`;
+        row.style.minHeight = `${newHeight}px`;
+
+        Array.from(row.cells).forEach((cell) => {
+          cell.style.height = `${newHeight}px`;
+          cell.style.minHeight = `${newHeight}px`;
+          cell.style.lineHeight = "1.05";
+        });
+      });
+
+      return;
+    }
+
+    // Cas limite : trop de contenu pour tenir confortablement sur une page.
+    // On réduit légèrement les espaces, mais on ne casse pas les lignes longues.
+    table.style.fontSize = "6pt";
+
+    rows.forEach((row) => {
+      row.style.height = "auto";
+      row.style.minHeight = "0";
+
+      Array.from(row.cells).forEach((cell) => {
+        cell.style.height = "auto";
+        cell.style.minHeight = "0";
+        cell.style.paddingTop = "0";
+        cell.style.paddingBottom = "0";
+        cell.style.lineHeight = "1";
+      });
+    });
   });
 }
 
@@ -174,60 +278,34 @@ export default function AllergenForm() {
     if (numRows > MIN_ROWS) setNumRows((n) => n - 1);
   };
 
-  // Ajuste automatiquement la hauteur des lignes à l'impression
+  // Ajuste automatiquement la hauteur du tableau pour remplir une page A4.
   useEffect(() => {
-    const px = (sel: string) =>
-      (document.querySelector(sel) as HTMLElement | null)?.offsetHeight ?? 0;
-
-    const cs = (el: Element | null, p: string) =>
-      el
-        ? parseFloat(
-            (getComputedStyle(el as HTMLElement) as unknown as Record<
-              string,
-              string
-            >)[p] ?? "0"
-          )
-        : 0;
-
-    const beforePrint = () => {
-      const trs = Array.from(
-        document.querySelectorAll("table.allergen-table tbody tr")
-      ) as HTMLTableRowElement[];
-
-      if (!trs.length) return;
-
-      // Hauteur utile A4 : 297 mm - 2 x 10 mm de marges
-      const PAGE_H_PX = Math.round(277 * 3.7795275591);
-
-      const page = document.querySelector(".print-page");
-      const header = document.querySelector(".print-header");
-      const sub = document.querySelector(".print-subheader");
-      const footer = document.querySelector(".print-footer");
-
-      const padV = cs(page, "paddingTop") + cs(page, "paddingBottom");
-      const hdrH = px(".print-header") + cs(header, "marginBottom");
-      const subH = px(".print-subheader") + cs(sub, "marginBottom");
-      const theadH = px("table.allergen-table thead");
-      const ftrH = cs(footer, "marginTop") + px(".print-footer");
-
-      const avail = PAGE_H_PX - padV - hdrH - subH - theadH - ftrH;
-      const rowH = Math.floor(avail / trs.length);
-
-      trs.forEach((tr) => {
-        tr.style.height = `${Math.max(rowH, 10)}px`;
+    const scheduleFit = () => {
+      requestAnimationFrame(() => {
+        fitAllergenTableToA4();
       });
     };
 
-    window.addEventListener("beforeprint", beforePrint);
-    window.addEventListener("afterprint", clearRowHeights);
+    scheduleFit();
+
+    window.addEventListener("beforeprint", fitAllergenTableToA4);
+    window.addEventListener("afterprint", clearAllergenTablePrintStyles);
+    window.addEventListener("resize", scheduleFit);
 
     return () => {
-      window.removeEventListener("beforeprint", beforePrint);
-      window.removeEventListener("afterprint", clearRowHeights);
+      window.removeEventListener("beforeprint", fitAllergenTableToA4);
+      window.removeEventListener("afterprint", clearAllergenTablePrintStyles);
+      window.removeEventListener("resize", scheduleFit);
     };
-  }, [numRows]);
+  }, [numRows, rows, eventType, eventName, eventDate]);
 
-  const handlePrint = () => window.print();
+  const handlePrint = () => {
+    fitAllergenTableToA4();
+
+    setTimeout(() => {
+      window.print();
+    }, 150);
+  };
 
   const handleDownloadPDF = () => {
     toast({
@@ -237,7 +315,11 @@ export default function AllergenForm() {
       duration: 5000,
     });
 
-    setTimeout(() => window.print(), 300);
+    fitAllergenTableToA4();
+
+    setTimeout(() => {
+      window.print();
+    }, 300);
   };
 
   const handlePinSuccess = () => {
@@ -501,7 +583,7 @@ export default function AllergenForm() {
                       style={{
                         writingMode: "vertical-rl",
                         transform: "rotate(180deg)",
-                        fontSize: "11pt",
+                        fontSize: ALLERGEN_HEADER_FONT_SIZE,
                         lineHeight: 1.05,
                         padding: "5px 1px",
                         height: TABLE_HEADER_HEIGHT,
