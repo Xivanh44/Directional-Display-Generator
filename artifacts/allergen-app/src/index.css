@@ -597,3 +597,64 @@
     inset: -1px;
   }
 }
+/* CORRECTION — le tableau allergènes remplit la page A4 */
+@media print {
+  .print-page {
+    height: 277mm !important;
+    min-height: 277mm !important;
+    max-height: 277mm !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+  }
+
+  .print-header,
+  .print-subheader,
+  .print-footer {
+    flex: 0 0 auto !important;
+  }
+
+  .allergen-table-wrapper {
+    flex: 1 1 auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+  }
+
+  table.allergen-table {
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    height: 100% !important;
+    table-layout: fixed !important;
+    border-collapse: collapse !important;
+  }
+
+  table.allergen-table thead {
+    height: 110px !important;
+  }
+
+  table.allergen-table tbody {
+    height: 100% !important;
+  }
+
+  table.allergen-table tbody tr {
+    height: 19pt !important;
+    min-height: 19pt !important;
+  }
+
+  table.allergen-table td {
+    height: 19pt !important;
+    min-height: 19pt !important;
+    padding: 1px 2px !important;
+    vertical-align: middle !important;
+    line-height: 1.05 !important;
+  }
+
+  table.allergen-table td:first-child {
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow-wrap: anywhere !important;
+  }
+}
