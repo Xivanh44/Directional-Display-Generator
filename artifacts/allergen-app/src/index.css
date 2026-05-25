@@ -273,7 +273,7 @@
     background: transparent !important;
     box-shadow: none !important;
     padding: 0 !important;
-    font-size: 8.5pt !important;
+    font-size: 7.5pt !important;
     font-weight: 600;
     color: #1f355e !important;
     width: 100% !important;
@@ -306,9 +306,9 @@
   }
 
   /* Largeurs de colonnes pour tenir dans ~509 pt utiles
-     Col nom : 170 pt  — 15 allergènes × 20 pt = 300 pt  — total 470 pt ✓ */
-  table.allergen-table col.col-name    { width: 170pt !important; }
-  table.allergen-table col.col-allergen{ width: 20pt  !important; }
+     Col nom : 165 pt  — 15 allergènes × 21 pt = 315 pt  — total 480 pt ✓ */
+  table.allergen-table col.col-name    { width: 165pt !important; }
+  table.allergen-table col.col-allergen{ width: 21pt  !important; }
   table.allergen-table col.no-print    { display: none !important; width: 0 !important; }
 
   /* ── En-têtes ── */
@@ -643,75 +643,5 @@ table.allergen-table thead th .allergen-header-cell {
     text-align: center !important;
     color: #1f355e !important;
     font-weight: 600 !important;
-  }
-}
-/* CORRECTION FINALE — tableau auto-ajusté sur A4 avec lignes variables */
-@media print {
-  .print-page {
-    height: calc(297mm - 20mm) !important;
-    min-height: calc(297mm - 20mm) !important;
-    max-height: calc(297mm - 20mm) !important;
-
-    display: flex !important;
-    flex-direction: column !important;
-
-    padding: 0 !important;
-    margin: 0 !important;
-    overflow: hidden !important;
-    box-sizing: border-box !important;
-  }
-
-  .print-header,
-  .print-subheader,
-  .print-footer {
-    flex: 0 0 auto !important;
-  }
-
-  .allergen-table-wrapper {
-    flex: 1 1 auto !important;
-    min-height: 0 !important;
-    height: auto !important;
-    overflow: hidden !important;
-    display: flex !important;
-  }
-
-  table.allergen-table {
-    width: 100% !important;
-    height: 100% !important;
-    table-layout: fixed !important;
-    border-collapse: collapse !important;
-  }
-
-  table.allergen-table thead {
-    height: 110px !important;
-  }
-
-  table.allergen-table tbody {
-    height: auto !important;
-  }
-
-  table.allergen-table tbody tr {
-    height: auto !important;
-  }
-
-  table.allergen-table td {
-    height: auto !important;
-    min-height: 0 !important;
-    padding: 1px 2px !important;
-    vertical-align: middle !important;
-    line-height: 1.05 !important;
-  }
-
-  table.allergen-table td:first-child {
-    white-space: normal !important;
-    word-break: break-word !important;
-    overflow-wrap: anywhere !important;
-  }
-
-  table.allergen-table input[type="text"] {
-    height: auto !important;
-    min-height: 0 !important;
-    line-height: 1.05 !important;
-    white-space: normal !important;
   }
 }
