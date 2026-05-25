@@ -658,3 +658,35 @@
     overflow-wrap: anywhere !important;
   }
 }
+/* CORRECTION IMPRESSION — bordures gauches plus visibles */
+@media print {
+  .print-subheader,
+  .print-subheader-grid {
+    border: 1.5px solid #1f355e !important;
+    outline: 1px solid #1f355e !important;
+    outline-offset: -1px !important;
+  }
+
+  .print-subheader > div:first-child,
+  .print-subheader-grid > div:first-child {
+    border-left: 1.5px solid #1f355e !important;
+  }
+
+  table.allergen-table {
+    border-collapse: collapse !important;
+    border-left: 1.5px solid #1f355e !important;
+    border-top: 1.5px solid #1f355e !important;
+    outline: 1px solid #1f355e !important;
+    outline-offset: -1px !important;
+  }
+
+  table.allergen-table th:first-child,
+  table.allergen-table td:first-child {
+    border-left: 1.5px solid #1f355e !important;
+  }
+
+  table.allergen-table thead th {
+    border-top: 1.5px solid #1f355e !important;
+    border-bottom: 1.5px solid #1f355e !important;
+  }
+}
