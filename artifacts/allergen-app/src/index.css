@@ -690,3 +690,13 @@
     border-bottom: 1.5px solid #1f355e !important;
   }
 }
+/* CORRECTION IMPRESSION — police ingrédients moins grasse */
+@media print {
+  table.allergen-table tbody td:first-child,
+  table.allergen-table tbody td:first-child input,
+  table.allergen-table tbody td:first-child textarea,
+  table.allergen-table tbody td:first-child [contenteditable="true"],
+  table.allergen-table tbody td:first-child * {
+    font-weight: 400 !important;
+  }
+}
